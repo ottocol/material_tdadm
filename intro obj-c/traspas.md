@@ -29,6 +29,11 @@
 
 ##Un poco de historia
 
+- Creado en 1980 por Brad Cox y Tom Love, inspirado en Smalltalk <!-- .element: class="fragment" -->
+- Adoptado por NeXT como lenguaje de desarrollo en 1988 <!-- .element: class="fragment" -->
+- En 1996 Apple compra NeXT y usa NexTSTEP como base para OS X <!-- .element: class="fragment" -->
+- En 2006 se presenta Objective-C 2.0, una modernización de la sintaxis<!-- .element: class="fragment" -->
+- En 2014 Apple presenta Swift como alternativa a Obj-C <!-- .element: class="fragment" -->
 
 ---
 
@@ -71,6 +76,13 @@
 - Se usan `#import`, muy parecidos a los `#include` de C. 
 - La gestión de memoria se puede **automatizar**, aunque no usa recolección de basura, sino *cuenta de referencias*
 
+---
+
+##Introducción a Obj-C con una aplicación de ejemplo
+
+Vamos a desarrollar una aplicación llamada **UADivino** que básicamente es una versión simplificada de la típica "bola 8"
+
+Le formulamos a la app una pregunta "en voz alta" y nos responde sí/no
 
 ---
 
