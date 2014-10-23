@@ -121,4 +121,33 @@ UIAlertView *alert = [[UIAlertView alloc]
 }
 ```
 
+---
+
+##Teclado en pantalla
+
+- un problema típico es cómo quitarlo de enmedio. Para quitarlo al pulsar sobre "intro"
+    + Crear un *action* con `Ctrl+Arrastrar` entre el campo y el `.m` del controller. En el menú desplegable elegir el evento `Did end on exit`
+    + En el *action* hacer
+
+
+```objectivec
+- (IBAction)pulsadoIntro:(id)sender {
+  [sender resignFirstResponder];
+  //También valdría esto
+  [self.view endEditing:YES;]
+ }
+```
+
+---
+
+##Teclado sin intro
+
+- El teclado numérico no tiene intro, en este caso lo típico es hacer que se oculte cuando se hace *tap* en el background
+
+```objectivec
+-(void) touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    NSLog(@"touch en la pantalla!!");
+    [self.view endEditing:YES];
+ }
+```
 
