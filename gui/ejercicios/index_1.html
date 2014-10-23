@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Ejercicios de view controllers</title>
+	</head>
+<body>
+
+<h2>Ejercicios de <em>view controllers</em></h2>
+
+<p>Vamos a hacer una aplicación que vamos a llamar “Pioneras”, y que nos dará datos de algunas mujeres pioneras de la informática. La aplicación tendrá una pantalla principal en la que aparecerán sus imágenes, y haciendo <em>tap</em> sobre cada una podremos ir a las pantallas secundarias donde se nos dará más información.</p>
+
+<h3>Realizar la estructura básica de la aplicación</h3>
+
+<ol>
+	<li>En la carpeta <code>sesion1/recursos/</code> de las plantillas tenemos las imágenes de las tres pioneras: Ada Lovelace, Grace Hopper y Barbara Liskov, que como siempre <strong>arrastraremos al <code>images.xcassets</code></strong>. También tenemos los textos sobre ellas que se mostrarán en las pantallas secundarias.</li>
+	<li>Crea tres botones en la pantalla principal, y para cada uno de ellos en lugar de texto vamos a usar como imagen de fondo la de cada mujer. Al final cada botón debería ocupar todo el ancho de la pantalla y un tercio del alto.</li>
+	<li>Arrastra un nuevo “view controller” al storyboard (una “pantalla” nueva), que será el que aparezca cuando se pulse en el primero de los botones (el de Ada Lovelace). Inserta un campo de texto de varias líneas (<em>text view</em>) y copia en él el contenido de <code>sesion1/recursos/lovelace.txt</code></li>
+	<li><p>Ahora <strong>establece el <em>segue</em> entre las dos pantallas</strong>: haz <code>Ctrl+Arrastrar</code> desde el primero de los botones con la imagen de Ada Lovelace hasta la segunda pantalla. En el menú contextual elige el tipo <code>modal</code>, <strong>ya que los otros no funcionarán</strong>.</p>
+
+		<ul>
+			<li>Si haces <em>clic</em> en el <em>segue</em> y vas al <em>Attribute inspector</em> puedes cambiar las propiedades, pero tal como está hecha la aplicación solo va a tener efecto la <code>transition</code>. Pon el valor que quieras, salvo <code>partial curl</code> que puede dar problemas a la hora de volver atrás en el <em>segue</em>.</li>
+			<li>Ejecuta el proyecto para comprobar que funciona lo que has hecho, aunque <em>todavía no puede volver atrás desde la pantalla secundaria</em></li>
+		</ul></li>
+	<li><p>Implementa la opción de <strong>volver atrás</strong> de la secundaria a la principal</p>
+
+		<ul>
+			<li>Crea un botón “atrás” en la secundaria y colócalo en la parte de arriba (para que no lo tape el teclado <em>on-screen</em> si aparece)</li>
+			<li>En el <em>controller</em> destino crea un método para que funcione el <em>unwinding</em> (no hace falta que haga nada, solo que exista)</li>
+		</ul></li>
+</ol>
+
+<pre><code>- (IBAction)retornoDeSecundaria:(UIStoryboardSegue*)segue {
+}
+</code></pre>
+
+<ul>
+	<li><p>Con <code>Ctrl+Arrastrar</code> conecta el botón “atrás” con el icono de “Exit” de la parte superior del <em>controller</em></p>
+
+		<ul>
+			<li>Ejecuta el proyecto y comprueba que puedes volver atrás desde la pantalla secundaria</li>
+		</ul></li>
+</ul>
+
+<ol>
+	<li>Repite lo que has hecho en el caso de Ada Lovelace para las otras dos mujeres, creando las pantallas secundarias y la navegación adelante y atrás.</li>
+</ol>
+
+<h2>Comunicar un <em>controller</em> con otro</h2>
+
+<p>Es un poco redundante tener tantas pantallas secundarias cuando en realidad lo único que cambia es el texto a mostrar. Valdría con una sola secundaria en la que cambiáramos dinámicamente dicho texto. Vamos a implementarlo así.</p>
+
+<h3>Guardar la versión actual del proyecto para que no se pierda</h3>
+
+<p>Lo primero es guardar una copia del estado actual del proyecto. Hay dos posibilidades:</p>
+
+<ul>
+	<li>con <code>git</code> podemos crear una etiqueta o <em>tag</em> que nos marque la versión actual del proyecto para poder recuperarla luego. No obstante Xcode no nos permite gestionar <em>tags</em>, por lo que, <strong>tras asegurarnos de que hemos hecho commit y push de todos los cambios actuales</strong>, haríamos desde la terminal (estando dentro del repositorio):</li>
+</ul>
+
+<pre><code>git tag v1.0   (etiquetamos el commit actual)
+git push origin v1.0 (subimos la etiqueta al repositorio remoto)
+</code></pre>
+
+<ul>
+	<li>Otra posibilidad es crear una copia manual de los ficheros del proyecto y guardarlo en una carpeta <code>v1.0</code> de las plantillas</li>
+</ul>
+
+<p>Ahora podéis eliminar los segues y las pantallas secundarias, es mejor crearlos de nuevo.</p>
+
+<h3>Crear la nueva interfaz</h3>
+
+<ul>
+	<li>Crea de nuevo una pantalla secundaria con un campo de texto de varias líneas</li>
+	<li>Con <code>Ctrl+arrastrar</code> podemos crear un <em>segue</em> desde cada uno de los botones hasta la pantalla. Habrán tres <em>segues</em> que lleguen a la misma, no debería ser problema.</li>
+	<li>Añádele a la pantalla el botón de “atrás” y conéctalo con el icono de “exit”. El código necesario para el <em>unwinding</em> (método <code>retornoDeSecundaria</code>) ya debería estar en el <code>ViewController.m</code></li>
+	<li>Comprueba que la navegación funciona correctamente yendo adelante y atrás</li>
+</ul>
+
+<h3>Crear un controlador personalizado para la pantalla secundaria</h3>
+
+<p>Si en la parte derecha de la pantalla miras el <em>identity inspector</em> verás que el controlador de la pantalla secundaria es un tipo propio de Cocoa, el <code>UIViewController</code>. Vamos a cambiarlo por uno propio</p>
+
+<ol>
+	<li>Crea una nueva clase de Cocoa Touch, (File&gt; New &gt; File…, plantilla “cocoa touch class”). En la segunda pantalla del asistente dale a la clase el nombre <code>SecundarioViewController</code> y haz que sea una subclase de <code>UIViewController</code>. Deja sin marcar la opción de crear el .XIB</li>
+	<li>En el <em>storyboard</em>, selecciona el <em>controller</em> de la pantalla secundaria (es mejor que lo hagas pulsando en el primero de los iconos que aparecen en la parte superior) </li>
+</ol>
+
+<figure><img src="iconos_arriba_storyboard.png"/></figure>
+
+<ol>
+	<li>Una vez seleccionado, ve al <em>identity inspector</em> en el área de <code>Utilities</code> y en el apartado de <code>Custom class</code> selecciona como clase la que has creado, <code>SecundarioViewController</code></li>
+</ol>
+
+<h3>Añadirle un <em>outlet</em> al controlador secundario</h3>
+
+<p>Tienes que añadir un <em>outlet</em> al campo de texto para que su contenido se pueda cambiar desde el controlador secundario. Hazlo como habitualmente, con ctrl+arrastrar entre el campo y el <code>SecundarioViewController.h</code>, en el <code>assistant editor</code>.</p>
+
+<h3>Hacer que el texto cambie según el botón pulsado</h3>
+
+<ul>
+	<li>Lo primero es añadir físicamente los ficheros <code>*.txt</code> con los textos al proyecto para que se puedan cargar dinámicamente por código. Pulsa con el botón derecho sobre el proyecto y selecciona <code>Add files to Pioneras</code>. Selecciona los tres <code>.txt</code>, que se añadirán al proyecto</li>
+	<li>Para que le podamos decir al controlador secundario qué fichero tiene que abrir, vamos a crear una <code>@property</code> en el <code>SecundarioViewController</code> llamada <code>nomFich</code> de tipo <code>NSString*</code></li>
+</ul>
+
+<pre><code>//En el SecundarioViewController.h
+@property NSString *nomFich;
+</code></pre>
+
+<ul>
+	<li>Para establecer una asociación sencilla entre cada segue y los datos a mostrar puedes usar el identificador del <em>segue</em>. Haz clic sobre él y en el <code>Attributes inspector</code> cambia su <code>identifier</code>, respectivamente por <code>lovelace</code>, <code>hopper</code> y <code>liskov</code></li>
+	<li>ahora en la clase <code>ViewController</code>, que es el controlador de la pantalla principal, puedes implementar el <code>prepareForSegue:sender</code></li>
+</ul>
+
+<pre><code>//En el ViewController.m
+-(void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    SecundarioViewController *svc = segue.destinationViewController;
+    //El fichero a cargar se corresponde con el identificador del segue
+    svc.nomFich = segue.identifier;
+}
+</code></pre>
+
+<ul>
+	<li>Finalmente, en el <code>viewDidLoad</code> del <code>SecundarioViewController</code> puedes acceder a la propiedad <code>self.nomFich</code>, cargar el texto del fichero y mostrarlo en el campo de texto.</li>
+</ul>
+
+<pre><code>//Sacamos el path completo el fichero	
+NSString *filePath = [[NSBundle mainBundle] pathForResource:self.nomFich
+                                                         ofType:@&quot;txt&quot;];
+NSError *error;
+NSString *textoFich;
+if (filePath) {
+    //Leemos el fichero y guardamos su contenido en un NSString*
+    textoFich = [NSString stringWithContentsOfFile:filePath
+                          encoding:NSUTF8StringEncoding
+                          error:&amp;error];
+//HAY QUE CAMBIAR self.campoTexto POR COMO HAYAIS LLAMADO AL OUTLET!!!!!
+if (!error) {
+    //Si todo es OK, mostramos la cadena en el campo de texto
+    self.campoTexto.text = textoFich;
+}
+ 
+</code></pre>
+
+</body>
+</html>

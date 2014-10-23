@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Ejercicios de vistas</title>
+	</head>
+<body>
+
+<h2>Ejercicios de vistas</h2>
+
+<h3>Creación de ventana/controlador/vista de modo manual</h3>
+
+<p>Ya hemos visto que por defecto las aplicaciones de Xcode usan el <em>storyboard</em>. Este <em>storyboard</em> lo carga automáticamente el Application Delegate, haciendo además las siguientes tareas:</p>
+
+<ul>
+	<li>Crear una ventana con el tamaño de la pantalla</li>
+	<li>Cargar el controlador asociado a la pantalla inicial, y asignarle a su propiedad <code>view</code> las subvistas de esta pantalla</li>
+	<li>Hacer visible la ventana, que ahora contiene al controlador</li>
+</ul>
+
+<p>Vamos a hacer lo mismo pero de modo manual, para comprender un poco mejor todo el proceso </p>
+
+<ul>
+	<li>Cread un nuevo proyecto en la carpeta <code>sesion2</code> de las plantillas llamado <code>VistaManual</code></li>
+	<li>Lo primero es desactivar el <em>storyboard</em>. Para ello en el navegador de Xcode hacemos clic sobre el icono del proyecto. Aparecerán los distintos apartados de configuración. Elegimos <code>info</code> y eliminamos una propiedad que pone “Main Storyboard name” pulsando sobre el botón de ‘-‘. Ahora el proyecto ya no usa el storyboard</li>
+	<li>En el <code>applicationDidFinishLaunching:withOptions</code> del AppDelegate tenemos que hacer lo siguiente</li>
+</ul>
+
+<pre><code> self.window = [[UIWindow alloc]
+                      initWithFrame: [[UIScreen mainScreen] bounds]];
+ self.window.rootViewController = [[ViewController alloc] init];
+ UIButton *boton = [[UIButton alloc] init];
+ [self.window makeKeyAndVisible];
+</code></pre>
+
+<ul>
+	<li><p>No obstante, en pantalla no se verá nada, ya que la vista del <code>ViewController</code> está vacía. Probad a hacer que aparezca algo para comprobar que todo funciona:</p>
+
+		<ul>
+			<li>Tened en cuenta que la vista es <code>self.window.rootViewController.view</code></li>
+			<li>cambiad el color, propiedad <code>backgroundColor</code> de la vista. Para especificar color lo más sencillo es usar una serie de métodos de clase (estático) de <code>UIColor</code>: <code>[UIcolor greenColor]</code>, <code>[UIcolor redColor]</code>,…</li>
+			<li>cread un botón (instanciad un objeto de la clase UIButton*), especificando el título (método <code>setLabel:forState</code>) y unas dimensiones</li>
+		</ul></li>
+</ul>
+
+<pre><code>[boton setTitle:@&quot;Soy un botón manual&quot; forState:UIControlStateNormal];	
+[boton setFrame:CGRectMake(100,100,100,40)];
+</code></pre>
+
+<h2>Uso de controles de interfaz de usuario</h2>
+
+<p>En un nuevo proyecto, llamado <code>Controles</code>, probad el uso de algunos de los controles de interfaz de usuario de iOS que todavía no hemos visto. Para cualquier duda, consultad la documentación de Xcode o la <a href="https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/UIKitUICatalog/UIControl.html">referencia de controles de UIKit</a></p>
+
+<ul>
+	<li><p>Cread un <em>slider</em> cuya escala vaya desde 0 hasta 100, y un <em>label</em> al lado. Al mover el slider, el <em>label</em> debería cambiar para reflejar su valor actual. </p>
+
+		<ul>
+			<li>Cread un <em>outlet</em> para poder manipular la etiqueta</li>
+			<li>Crear un “action” con <code>ctrl+arrastrar</code> desde el <em>slider</em> al código de <code>ViewController.m</code>. En este <em>action</em> podéis obtener el valor actual del <em>slider</em> (propiedad <code>value</code> del parámetro <code>sender</code> y fijarlo como texto de la etiqueta. Tened en cuenta que el valor del slider es un número y el texto es un <code>NSString*</code>, podéis usar <code>[NSString stringWithFormat]</code> para convertir como ya hemos hecho varias veces.</li>
+		</ul></li>
+	<li><p>cread un botón que cuando se pulse aparezca un <code>UIActionSheet</code> dando varias opciones con texto inventado por vosotros. Detectad qué opción se ha mostrado e imprimid un mensaje con <code>NSLog</code> indicándolo. Tendréis que consultar la <a href="https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/UIKitUICatalog/UIActionSheet.html#//apple_ref/doc/uid/TP40012857-UIActionSheet-SW1">documentación de <code>UIActionSheet</code></a>. Mirad el apartado “Behavior of action sheets”. Básicamente la idea es que al crear el <em>action sheet</em> se especifica qué objeto es su “delegate” (lo más sencillo es que sea el controller) y este tiene que</p>
+
+		<ul>
+			<li>Especificar que implementa el protocolo <code>UIActionSheetDelegate</code></li>
+			<li>Implementar el método <code>actionSheet:clickedButtonAtIndex:</code> que nos dirá el número de opción elegida, comenzando en 0.</li>
+		</ul></li>
+</ul>
+
+</body>
+</html>
