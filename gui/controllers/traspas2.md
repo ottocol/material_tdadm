@@ -44,8 +44,8 @@ self.window.rootViewController = mvc;
 ##Cargar un NIB (opción 2)
 
 ```objectivec
-EjemploViewController *ejemploViewController = 
-  [[EjemploViewController alloc] initWithNibName:@"ejemplo" bundle:nil];
+EjemploViewController *evc =   [[EjemploViewController alloc] 
+                                 initWithNibName:@"ejemplo" bundle:nil];
 self.window.rootViewController = evc;
 ```
 

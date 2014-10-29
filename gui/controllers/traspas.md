@@ -93,7 +93,7 @@ Recordemos que los *controllers* son **el “pegamento” que relaciona la vista
 ##Cambiar la clase del controller
 
 - Por defecto, las clases de las nuevas pantallas serán propias de Cocoa: `UIViewController`, `UITableViewController`,... 
-- En general las cambiaremos por las nuestras, para poder escribir nuestro código AA
+- En general las cambiaremos por las nuestras, para poder escribir nuestro propio código.
 
 ![](img/controller_class.png) 
 
