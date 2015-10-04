@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Foundation framework</title>
+	</head>
+<body>
+<h2>Foundation framework</h2>
+
+<p>El <em>framework Foundation</em> define un conjunto de clases básicas y de utilidades que no están directamente incluídas en Objective-C, como colecciones, cadenas, fechas …</p>
+
+<p>Además define algunos elementos importantes como la raíz de la jerarquía de clases y algunos tipos primitivos para mejorar la portabilidad.</p>
+
+<h3>Tipos primitivos de C vs tipos primitivos de Foundation/Cocoa</h3>
+
+<ul>
+	<li>Como Objective-C es compatible con C podemos seguir usando en nuestros programas los tipos <code>int</code>, <code>float</code>, <code>double</code>,…</li>
+	<li>En Foundation también existen <code>NSInteger</code> y <code>NSUInteger</code> como sustitutos de las variantes de <code>int</code>. Son simplemente <code>typedef</code> definidos como enteros con la longitud apropiada para la plataforma (32/64 bits). Es decir, no son objetos sino tipos primitivos, y se recomienda su uso por razones de portabilidad.</li>
+	<li>Algo similar ocurre con <code>CGFloat</code>, usado ampliamente en Cocoa cuando se trabaja con números reales.</li>
+</ul>
+
+<h3>Clases básicas</h3>
+
+<ul>
+	<li>En Foundation existe el concepto de objeto <em>mutable</em> e <em>inmutable</em> inmutable significa que no se pueden insertar, eliminar o cambiar elementos de la colección. Para estas operaciones debemos usar objetos mutables. Por ejemplo, las cadenas <code>NSSString</code> que hemos visto hasta ahora son objetos inmutables. </li>
+</ul>
+
+<h4><code>NSObject</code>: la raíz de la jerarquía de clases</h4>
+
+<ul>
+	<li>Todas las clases deben heredar de una clase base, en caso contrario dará error de compilación. Lo habitual es hacer que nuestras clases hereden de <code>NSObject</code>, la “clase raíz” de Foundation.</li>
+</ul>
+
+<blockquote>
+<p>Esto es similar a otros lenguajes, por ejemplo Java, en la que todas las clases deben heredar de <code>Object</code>. Lo que ocurre es que en Java se hace implícitamente mientras que en Objective-C se debe especificar de manera explícita. De hecho en versiones antiguas de Java también se debía hacer explícitamente. </p>
+</blockquote>
+
+<ul>
+	<li><p>La clase <code>NSObject</code> incluye una serie de métodos de utilidad para nuestras clases, entre otros:</p>
+
+		<ul>
+			<li><code>initialize</code> es un método de clase llamado cuando ésta se carga por primera vez. Puede servir para inicializar variables estáticas.</li>
+			<li>En los dos siguientes apartados vamos a ver los métodos de <code>NSObject</code> para copiar objetos y obtener información sobre la instancia actual.</li>
+		</ul></li>
+</ul>
+
+<h5>Copia de objetos</h5>
+
+<ul>
+	<li>los métodos <code>copy</code>/<code>mutableCopy</code>: sirven para hacer una copia inmutable/mutable de un objeto, respectivamente.</li>
+	<li>Con clases de Foundation/Cocoa, podremos hacer una copia usando estos métodos cuando la clase en cuestión sea conforme al protocolo <code>NSCopying</code>. Podremos comprobar este extremo en la documentación</li>
+</ul>
+
+<figure><img src="NSString%20doc.png" alt="Documentación del API de NSString: podemos ver que es conforme entre otros al protocolo &quot;NSCopying&quot;" title="Documentación del API de NSString"/><figcaption>Documentación del API de NSString: podemos ver que es conforme entre otros al protocolo &quot;NSCopying&quot;</figcaption></figure>
+
+<blockquote>
+<p>Posteriormente veremos más a fondo los protocolos en Objective-C. Por ahora nos basta con saber que más o menos equivalen a los <code>Interface</code> de Java</p>
+</blockquote>
+
+<pre><code>// La cadena original es inmmutable
+NSString *cadena = @&quot;Mi cadena&quot;;
+NSString *copiaInmutable = [cadena copy]; 
+NSMutableString *copiaMutable = [cadena mutableCopy]; 
+// La cadena original es mutable
+NSMutableString *cadenaMutable = [NSMutableString stringWithCapacity: 32];
+NSString *copiaInmutable = [cadenaMutable copy]; 
+NSMutableString *copiaMutable = [cadenaMutable mutableCopy];
+</code></pre>
+
+<ul>
+	<li><p>Con clases propias, para que <code>copy</code> funcione, debemos</p>
+
+		<ol>
+			<li>Implementar un método <code>copyWithZone</code> (al que <code>copy</code> acaba llamando). En este método debemos devolver la copia. Para ayudarnos podemos hacer uso de NSCopyObject, que hace la copia <em>shallow</em> del objeto.</li>
+			<li>Especificar que nuestra clase es conforme a <code>NSCopying</code>. </li>
+		</ol></li>
+	<li>Podéis ver más detalles del proceso anterior por ejemplo en <a href="http://www.techotopia.com/index.php/Copying_Objects_in_Objective-C">este tutorial</a></li>
+	<li>Con clases propias, para <code>mutableCopy</code> debemos hacer lo mismo pero implementando un método <code>mutableCopyWithZone</code> </li>
+</ul>
+
+<h5>Información sobre una instancia</h5>
+
+<p><code>NSObject</code> implementa una serie de métodos que ofrecen información sobre una instancia y que podemos sobreescribir para adaptar a nuestras necesidades. Como ahora veremos, la mayoría de clases de Foundation ya los sobreescriben.</p>
+
+<ul>
+	<li><p><code>isEqual</code>: como siempre se utilizan referencias para los objetos, el operador <code>==</code> lo que hará es <em>comprobar si apuntan a la misma dirección de memoria</em>. Si queremos comprobar igualdad de contenido, podemos usar <code>isEqual</code>. </p>
+
+		<ul>
+			<li>La mayoría de clases de Cocoa/Foundation sobreescriben este método o bien proporcionan versiones algo más sofisticadas. Por ejemplo, <code>NSString</code> implementa también un método <code>isEqualToString</code>, especializado en comparar cadenas.</li>
+			<li>En nuestras propias clases deberíamos sobreescribir el <code>isEqual</code> ya que la versión de <code>NSObject</code> usa simplemente un <code>==</code> para comparar.</li>
+		</ul></li>
+	<li><code>hash</code>: debe calcular (cómo no) un <em>hash</em> para nuestro objeto. La implementación por defecto simplemente devuelve la dirección del objeto, de modo que en nuestras propias clases deberíamos sobreescribirlo si lo necesitamos. La mayoría de clases de Cocoa lo sobreescriben.</li>
+</ul>
+
+<blockquote>
+<p>hasta iOS 7 <code>hash</code> era un método. En iOS 8 es una propiedad</p>
+
+<p>Como especifica la documentación de Apple, si sobreescribimos <code>isEqual</code> también debemos hacer lo propio con <code>hash</code>si queremos usar la clase en colecciones. En caso contrario podemos tener problemas, ya que dos objetos iguales deberían tener el mismo valor de <em>hash</em>.</p>
+</blockquote>
+
+<ul>
+	<li><code>description</code>: debería devolver un <code>NSString*</code> con una descripción del objeto (al estilo <code>toString</code> de Java). Como en los métodos anteriores, deberíamos sobreescribirlo en nuestras propias clases ya que la implementación por defecto imprime simplemente el nombre de la clase y la dirección en memoria de la instancia.</li>
+</ul>
+
+<h4>Cadenas</h4>
+
+<p>Ya hemos usado múltiples veces <code>NSString</code>. La clase tiene numerosos métodos para manipulación de cadenas, búsqueda de subcadenas, conversión entre cadenas de C y <code>NSString</code>, etc. La clase es inmutable pero su subclase <code>NSMutableString</code> sí es mutable. Podéis consultar <a href="http://rypress.com/tutorials/objective-c/data-types/nsstring.html">este tutorial</a> para ver ejemplos de uso</p>
+
+<h4>Fechas</h4>
+
+<p>Otra clase básica es <code>NSDate</code>, para el manejo de fechas. Podéis ver ejemplos de su uso en <a href="http://rypress.com/tutorials/objective-c/data-types/dates.html">este tutorial</a>.</p>
+
+<h3>Colecciones</h3>
+
+<ul>
+	<li>Todas las colecciones de Foundation vienen en una versión “inmutable” y otra “mutable”. </li>
+	<li>Cuando se añade un objeto a una colección mutable lo que se está añadiendo es una referencia, no una copia, por lo que <em>modificar el objeto original modificará la colección</em>.</li>
+</ul>
+
+<h4>Wrappers de tipos primitivos</h4>
+
+<ul>
+	<li>Las colecciones son conjuntos de objetos, por lo que directamente no pueden almacenar valores primitivos de C. Necesitaremos “empaquetar” estos tipos primitivos dentro de objetos usando <em>wrappers</em>.</li>
+	<li> <code>NSNumber</code> es un <em>wrapper</em> que puede empaquetar en forma de objeto cualquier tipo numérico de C. Además de para las colecciones, ciertos métodos de Cocoa requieren de datos numéricos como objetos en lugar de tipos primitivos.</li>
+	<li>Podemos definir un <code>NSNumber</code> precediendo un literal del símbolo <code>@</code>. Con una expresión debemos usar además paréntesis, por ejemplo</li>
+</ul>
+
+<pre><code>NSNumber *num = @7.25;
+float flo = 3.5;
+NSNumber *otro_num = @(flo);
+</code></pre>
+
+<ul>
+	<li>Un <code>NSNumber</code> no es directamente un número por lo que no puede participar en operaciones aritméticas, etc. Pero sí podemos obtener el valor empaquetado dentro con los métodos <code>intValue</code>, <code>floatValue</code>, etc.</li>
+</ul>
+
+<blockquote>
+<p>El compilador no chequea tipos al desempaquetar los valores, de modo que no dará error si llamamos por ejemplo a <code>intValue</code>para un valor empaquetado como <code>float</code>. En este caso simplemente truncará el valor.</p>
+</blockquote>
+
+<ul>
+	<li>Por otro lado, no es posible añadir <code>nil</code> a una colección ya que significa “vacío”. Si queremos representar esto en una colección usaremos la clase <code>NSNull</code>. Es un <em>singleton</em>, y para obtener su única instancia se usa el método de clase <code>null</code></li>
+</ul>
+
+<pre><code>id obj_nulo = [NSNull null];
+</code></pre>
+
+<h4>Listas</h4>
+
+<ul>
+	<li>La versión inmutable es <code>NSArray</code> y la mutable es su subclase <code>NSMutableArray</code></li>
+	<li>Un <code>NSArray</code> puede contener objetos de distintas clases. Por otro lado, los <code>NSMutableArray</code> pueden cambiar no solo de contenido sino también de tamaño. Es decir, son más parecidos a las listas de Java o a los arrays de Python/Ruby… que a los arrays de C.</li>
+	<li>La manera más sencilla de inicializar un <code>NSArray</code> es con un literal</li>
+</ul>
+
+<pre><code>NSArray *a = @[@1, @&quot;hola&quot;]; 
+</code></pre>
+
+<ul>
+	<li>Para inicializar un <code>NSMutableArray</code> no podemos usar literales, sino un método de clase que actúa como una factoría:</li>
+</ul>
+
+<pre><code>//El método admite un número variable de argumentos, terminados en &quot;nil&quot;
+NSMutableArray *mut = [NSMutableArray arrayWithObjects:
+                              @1, @&quot;Hola&quot;, nil];
+</code></pre>
+
+<ul>
+	<li>Podemos obtener el número de elementos que tiene la lista con el método <code>count</code>. Este método sirve también para las otras colecciones.</li>
+	<li>Podemos añadir un elemento a un <code>NSMutableArray</code> con <code>addObject</code>. O insertarlo en una posición específica con <code>insertObject:atIndex</code>. El elemento que estuviera en esa posición y los siguientes se moverán una posición “a la derecha”.</li>
+</ul>
+
+<pre><code>[mut insertObject:@&quot;adios&quot; atIndex:1];
+</code></pre>
+
+<ul>
+	<li>También podemos eliminar elementos, reemplazarlos, ordenarlos, filtrarlos,… se pueden ver ejemplos de uso en <a href="http://rypress.com/tutorials/objective-c/data-types/nsarray.html">este tutorial</a>.</li>
+</ul>
+
+<h4>Diccionarios</h4>
+
+<ul>
+	<li>Un diccionario es un conjunto de pares <code>(clave, valor)</code>. Las claves suelen ser <code>NSString</code>, pero se puede usar cualquier objeto que sea copiable (sea conforme a <code>NSCopying</code>) e implemente <code>isEqual</code> y <code>hash</code>.</li>
+	<li><code>NSDictionary`</code>es la versión inmutable y <code>NSMutableDictionary</code> la mutable.</li>
+	<li>Podemos crear un <code>NSDictionary</code> con un literal. Se usan las llaves como delimitador, la clave se separa del valor por <code>:`</code>y las parejas clave-valor por comas</li>
+</ul>
+
+<pre><code>NSDictionary meses = @{
+                           @&quot;Enero&quot; : @31,
+                           @&quot;Febrero&quot; : @28,
+                           @&quot;Marzo&quot; : @30
+                           }
+</code></pre>
+
+<ul>
+	<li>Podemos obtener un valor a partir de la clave usando notación de array <code>meses[@&quot;Enero&quot;]</code></li>
+	<li>Al igual que con los <code>NSArray</code>, para crear la versión mutable necesitamos un método factoría. Hay varios, por ejemplo podemos crearlo a partir de dos arrays, uno para los valores y otro para las claves</li>
+</ul>
+
+<pre><code>NSArray *nombres = @[@&quot;Enero&quot;, @&quot;Febrero&quot;, @&quot;Marzo&quot;];
+NSArray *dias = @[@31, @28, @30];
+    
+NSMutableDictionary *meses = [NSMutableDictionary dictionaryWithObjects:dias forKeys:nombres];
+</code></pre>
+
+<ul>
+	<li>Para añadir un elemento a un diccionario mutable podemos usar la notación de array o bien usar el método <code>setObject:forKey</code></li>
+</ul>
+
+<pre><code>meses[@&quot;Septiembre&quot; ] = @30;
+[meses setObject:@31 forKey:@&quot;Diciembre&quot;];
+</code></pre>
+
+<ul>
+	<li>Podemos ver más ejemplos de uso de diccionarios en <a href="http://rypress.com/tutorials/objective-c/data-types/nsdictionary.html">este tutorial</a>.</li>
+</ul>
+
+<h4>Conjuntos</h4>
+
+<ul>
+	<li>Un conjunto es una colección no ordenada de elementos distintos. Al igual que en el resto de colecciones, tenemos la versión inmutable <code>NSSet</code> y la mutable <code>NSMutableSet</code>.</li>
+	<li>No se pueden usar literales para inicializar conjuntos, pero sí hay varios métodos factoría, por ejemplo <code>setWithObjects</code></li>
+</ul>
+
+<pre><code>NSSet *conj = [NSSet setWithObjects:@1, @&quot;Hola&quot;, nil];
+</code></pre>
+
+<ul>
+	<li>Podemos comprobar si un objeto está en una colección con <code>containsObject</code>. Aunque esto también se puede hacer con <code>NSArray</code> los conjuntos lo implementan de modo mucho más eficiente.</li>
+	<li>Podemos añadir un objeto con <code>addObject</code> y eliminarlo con <code>removeObject</code></li>
+	<li>Podemos ejecutar otras operaciones típicas de conjuntos, como la unión, la intersección, etc. Para más ejemplos de uso de conjuntos, consultar <a href="http://rypress.com/tutorials/objective-c/data-types/nsset.html">este tutorial</a>.</li>
+</ul>
+
+<h4>Recorrer una colección</h4>
+
+<ul>
+	<li>La forma más simple de recorrer una colección es con la denominada <em>fast enumeration</em>, que consiste en un <code>for-in</code> al estilo Java 5.</li>
+</ul>
+
+<pre><code>for(id obj in coleccion) {
+    NSLog(@&quot;Obtenido el objeto %@&quot;, obj);
+}
+</code></pre>
+
+<ul>
+	<li>Si el tipo de objetos de la colección es uniforme y lo conocemos, podemos especificarlo, el código quedará más claro</li>
+</ul>
+
+<pre><code>for(NSString *cad in coleccion) {
+    NSLog(@&quot;Obtenida la cadena %@&quot;, cad);
+}
+</code></pre>
+
+<ul>
+	<li>El <em>fast enumeration</em> aplicado a diccionarios efectúa una iteración <strong>por las claves</strong>, pero a partir de ellas recuperar los valores es muy sencillo,como ya hemos visto</li>
+</ul>
+
+<pre><code>for (id clave in diccionario) {
+    NSLog(@&quot;(%@, %@)&quot;, clave, [diccionario objectForKey: clave]);               
+}
+</code></pre>
+
+<ul>
+	<li>Además de la <em>fast enumeration</em> se pueden usar <em>enumerators</em>, que son como los iteradores de Java, pero al igual que en este lenguaje el código resulta más complejo.</li>
+</ul>
+
+<blockquote>
+<p>Si mientras estamos recorriendo una colección mutable (tanto con for-in como con un enumerador) tratamos de modificarla, obtendremos un error en tiempo de ejecución.</p>
+</blockquote>
+
+</body>
+</html>
+
