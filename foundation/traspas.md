@@ -2,7 +2,7 @@
 ## Master en Desarrollo de Software para Dispositivos móviles
 
 #Tecnologías para el desarrollo de aplicaciones en dispositivos móviles
-##Sesión 2
+
 ##Introducción al *framework* Foundation
 
 ---
