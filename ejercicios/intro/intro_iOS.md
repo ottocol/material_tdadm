@@ -19,7 +19,7 @@ En el `didFinishLaunchingWithOptions` del `AppDelegate.m` del proyecto incluye u
 ```objectivec
 Contacto *c;
 
-[c initConNombre:@"Pepe" yTelefono:@"666112233"];
+c = [[Contacto alloc] initConNombre:@"Pepe" yTelefono:@"666112233"];
 [c nuevoTelefono:@"626113322"];
 //Imprimimos el nombre y los teléfonos
 NSlog(@"%@", c.nombre)
