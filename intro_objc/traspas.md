@@ -129,8 +129,25 @@ NSArray *a = [[NSArray alloc] init];
 
 ---
 
+## Un inicializador típico
 
-Una referencia para la que no se ha llamado a `alloc` es `nil` (el equivalente a `null` de Java) 
+Normalmente no es necesario sobreescribir `alloc`, pero sí `init`
+
+```objectivec
+- (id)init {
+    self = [super init];
+    if (self) {
+      //Aquí inicializaríamos las propiedades y/o variables de instancia
+      ...
+    }
+    return self;
+}
+```
+
+---
+
+
+Una referencia para la que no se ha llamado a `alloc`+`init` es `nil` (el equivalente a `null` de Java) 
 
 ```objectivec
 NSArray *a;
@@ -165,7 +182,49 @@ if ([myFoo respondsToSelector:selector]) {
 }
 ```
 
+---
 
+Además de métodos, los objetos pueden tener **variables de instancia**
+
+```objectivec
+@implementation Persona : NSObject
+int edad;
+...
+@end
+```
+
+---
+
+En la documentación de Apple se recomienda el uso de **propiedades**, en lugar de variables de instancia
+
+```objectivec
+@interface Persona : NSObject
+@property int edad;
+...
+@end
+```
+
+- Por cada propiedad hay una variable de instancia (por defecto con el mismo nombre precedido de `_`, en el ejemplo `_edad`) 
+- Las propiedades pueden tener *atributos* (por ejemplo, solo lectura)
+
+```objectivec
+@property(readonly) int edad;
+```
+
+---
+
+- Para cada propiedad se genera automáticamente un *getter* y un *setter* (solo *getter* si es `readonly`)
+
+```objectivec
+Persona *p = [[Persona alloc] init];
+//Siguiendo las convenciones típicas, el setter es setXXX
+[p setEdad:18];
+//El getter se llama simplemente como la propiedad
+NSLog(@"%d", [p edad]);
+//Se puede usar también notación "."
+p.edad = 18;
+NSLog(@"%d", p.edad);
+```
 
 ---
 
@@ -213,30 +272,20 @@ Para referenciar/incluir otras clases se usan `#import`, muy parecidos a los `#i
 @end
 ```
 
-
 ---
 
-Los objetos pueden tener **propiedades**
+**Propiedades privadas**: sección especial de `@interface` dentro del `.m`
+
 
 ```objectivec
-@interface Persona : NSObject
-@property int edad;
-...
+@interface Prueba ()
+@property NSMutableArray *cartas;
+@end
+@implementation Baraja
+    //...
 @end
 ```
 
-Para cada propiedad se genera automáticamente un *getter* y un *setter*
-
-```objectivec
-Persona *p = [[Persona alloc] init];
-//Siguiendo las convenciones típicas, el setter es setXXX
-[p setEdad:18];
-//El getter se llama simplemente como la propiedad
-NSLog(@"%d", [p edad]);
-//Se puede usar también notación "."
-p.edad = 18;
-NSLog(@"%d", p.edad);
-```
 
 ---
 
