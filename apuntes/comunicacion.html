@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Comunicación entre objetos</title>
+	</head>
+<body>
+<h1>Comunicación entre objetos</h1>
+
+<p>Casi todos los conceptos expuestos aquí son más de Cocoa que de Objective C propiamente dicho, <strong>por tanto muchos son aplicables también a Swift</strong>. </p>
+
+<h2>Target-action </h2>
+
+<ul>
+	<li>Ya hemos visto que es el mecanismo típico para comunicar eventos de la vista al controlador</li>
+	<li>Repasando: cuando se produzca un evento (por ejemplo un toque) sobre un objeto (vista) queremos avisar a otro objeto (controlador) llamando a un método determinado</li>
+	<li>Hasta ahora lo hemos hecho con el Interface Builder pero también se puede hacer por código</li>
+</ul>
+
+<pre><code>[unBoton addTarget:self action:@selector(botonPulsado) forControlEvents:UIControlEventTouchUpInside];
+...
+(void)botonPulsado {
+    NSLog(@&quot;Pulsado!&quot;);
+}
+</code></pre>
+
+<ul>
+	<li>El método del “action” puede tener varias signaturas. La más sencilla es la del ejemplo anterior, sin parámetros. También es admisible pasar la fuente del evento, o la fuente y el propio evento, como en el siguiente ejemplo:</li>
+</ul>
+
+<pre><code>[unBoton addTarget:self action:@selector(botonPulsado:paraEvento:) forControlEvents:UIControlEventTouchUpInside];
+...
+(void)botonPulsado:(id) sender paraEvento:(UIEvent *)evento{
+    NSLog(@&quot;Objeto: %@&quot;, [sender debugDescription]);
+    NSLog(@&quot;Evento: %@&quot;, [evento debugDescription]);
+}
+</code></pre>
+
+<ul>
+	<li>Lo que no podemos hacer es usar una signatura arbitraria, y por tanto <strong>no podemos usar este mecanismo cuando queramos pasar información “personalizada”</strong>.</li>
+	<li>¿Qué pasa cuando el <em>target</em> es <code>nil</code>?. El evento se sigue comunicando, pero a quién se comunica lo veremos en la asignatura de interfaz gráfico.</li>
+</ul>
+
+<h2>Delegates y protocols</h2>
+
+<ul>
+	<li>Supongamos que queremos comunicar a otro objeto que suceden ciertos eventos, y además queremos pasar información arbitraria en cada evento</li>
+	<li>Posible solución: especificar <em>formalmente</em> qué signatura tienen los métodos que informarán que se ha producido cada evento. Debemos estar seguros de que el objeto receptor implementa dichos métodos si no queremos un bonito error de ejecución (al ser Obj-C un lenguaje dinámico, daría solo un <em>warning</em> al compilar). </li>
+	<li>¿Cómo asegurarse de que una clase implementa ciertos métodos? Es la misma idea de los <em>interfaces</em> en Java, por ejemplo. En Obj-C se consigue lo mismo con los <em>protocols</em>.</li>
+</ul>
+
+<h3>Protocols</h3>
+
+<p>Definimos un protocolo en un fichero <code>.h</code></p>
+
+<pre><code>@protocol UACalificable
+- (void)setNota: (CGFloat) nota;
+- (CGFloat)nota;
+@end
+</code></pre>
+
+<p>Para especificar que una clase sigue un protocolo, ponemos su nombre entre <code>&lt;...&gt;`</code>tras el nombre de la superclase </p>
+
+<pre><code>@interface UAAsignatura : NSObject&lt;UACalificable&gt;
+&nbsp;&nbsp;&nbsp;&nbsp;...
+@end
+</code></pre>
+
+<blockquote>
+<p>Si miras el <code>.h</code>del <code>AppDelegate</code>de alguna aplicación verás que se especifica que implementa el protocolo <code>UIApplicationDelegate</code></p>
+</blockquote>
+
+<p>Podemos definir una variable de la que no sabemos todavía el tipo concreto (<code>id`</code>) pero sí que implementa un determinado <em>protocol</em>:</p>
+
+<pre><code>id&lt;UACalificable&gt; algoCalificable;
+</code></pre>
+
+<p>Si no implementamos algún método el compilador generará <em>warnings</em>, no errores.</p>
+
+<p>Podemos especificar que ciertos métodos son opcionales y otros obligatorios</p>
+
+<pre><code>@protocol MiProtocol&nbsp;&nbsp;
+- (void)metodoObligatorio;
+@optional
+- (void)metodoOpcional;
+- (void)otroMetodoOpcional;
+@required
+- (void)otroMetodoObligatorio;
+@end
+</code></pre>
+
+<p>Como cuestión de estilo se recomienda que los nombres de los protocolos sean <em>adjetivos</em> (como en el ejemplo anterior) o <em>gerundios</em> (por ejemplo, Cocoa tiene un protocolo <code>NSCopying</code>, que indica que se puede hacer una copia del objeto llamando a <code>copyWithZone:</code>).</p>
+
+<h3>Delegate</h3>
+
+<ul>
+	<li>Una vez tenemos definido un <em>protocol</em>, y un objeto conforme con él, ya sabemos que hay una serie de métodos a los que podemos llamar para comunicarnos con el objeto.</li>
+	<li>Al objeto receptor lo llamaremos <em>delegate</em>, ya que en él “delegamos” la responsabilidad de procesar los eventos.</li>
+</ul>
+
+<blockquote>
+<p>Si el nombre <em>delegate</em> te suena es porque aparece en iOS en múltiples ocasiones (por ejemplo el <code>AppDelegate</code>). Es un patrón de diseño ampliamente usado en la plataforma.</p>
+</blockquote>
+
+<h2>Key-Value Observing</h2>
+
+<ul>
+	<li>Un punto engorroso de los <em>delegates</em> es que hay que llamar <strong>explícitamente</strong> a los métodos del protocolo para avisar al objeto receptor. ¿Podríamos hacer que el aviso fuera automático cuando pasara “algo interesante”?</li>
+	<li>El mecanismo de KVO, o <em>key-value observing</em> nos permite avisar automáticamente al receptor cuando cambie una propiedad del emisor. En realidad es el receptor el que se “suscribe” a los cambios.</li>
+	<li>Para que se pueda usar KVO, es necesario que las propiedades a observar sean “KVC-compliant” </li>
+	<li>Para convertir al objeto “receptor” en el observador de los cambios de la propiedad “nombre” de un “emisor”, en su forma más sencilla haríamos algo como</li>
+</ul>
+
+<pre><code>[emisor addObserver:receptor
+  forKeyPath:@&quot;nombre&quot;
+  options:0
+  context: nil];
+</code></pre>
+
+<blockquote>
+<p>Por ahora no necesitamos los dos últimos parámetros así que los ponemos a 0 y <code>nil</code> respectivamente. Luego veremos para qué se usan.</p>
+</blockquote>
+
+<ul>
+	<li>Cuando se produzca el cambio en la propiedad, el receptor recibirá un mensaje <code>observeValueForKeyPath:ofObject:change:context:</code> (o dicho más al estilo Java/C++, se llamará a este método). Tendremos que implementar este método en nuestro receptor:</li>
+</ul>
+
+<pre><code>- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
+        change:(NSDictionary *)change context:(void *)context {
+NSLog(@&quot;Cambia la propiedad %@ a %@&quot;, keyPath, [object valueForKey:keyPath]);
+}
+</code></pre>
+
+<ul>
+	<li>Podemos indicarle a KVO que nos pase el nuevo valor, o que nos pase también el antiguo, o algo más sofisticado, como que nos avise antes y después del cambio,… Para esto se usa el parámetro <code>options</code>, que es una máscara de bits de opciones. Por ejemplo:</li>
+</ul>
+
+<pre><code>[emisor addObserver:receptor
+  forKeyPath:@&quot;nombre&quot;
+  options: (NSKeyValueObservingOptionNew | NSKeyValueObservingOptionOld)
+  context: nil];
+</code></pre>
+
+<ul>
+	<li>Con lo anterior indicamos que queremos tanto el nuevo valor como el antiguo. Para acceder a él podemos usar el parámetro de tipo diccionario <code>change</code>del <code>observeValueForKeyPath:ofObject:change:context:</code>. En el API hay varias claves que representan los distintos valores. Siguiendo con el ejemplo anterior, para obtener el valor antiguo y el nuevo haríamos algo como:</li>
+</ul>
+
+<pre><code>NSLog(@&quot;Cambia la propiedad %@ de %@ a %@&quot;, keyPath, change[NSKeyValueChangeOldKey], change[NSKeyValueChangeNewKey]);
+</code></pre>
+
+<ul>
+	<li>El parámetro <code>context</code> puede usarse si necesitamos que una misma clase (o sus subclases) observe una propiedad por varios motivos distintos. Llamaríamos al <code>addObserver</code> varias veces con distintos valores de <code>context</code>, que se pasa tal cual cuando se llama al <code>observeValueForKeyPath</code>. Comprobando allí el valor de este parámetro podemos saber qué <code>addObserver</code> ha “generado” este aviso. </li>
+	<li>Hay que “desregistrar” al observador antes de que desaparezca el observado, de lo contrario podríamos tener una fuga de memoria. Si no lo hacemos antes, podemos aprovechar el <code>dealloc</code> del receptor para hacerlo</li>
+</ul>
+
+<pre><code>- (void) dealloc {
+    NSLog(@&quot;Des-registrando observador...&quot;);
+    [emisor removeObserver:receptor forKeyPath:@&quot;nombre&quot;];
+}
+</code></pre>
+
+<ul>
+	<li>Nótese que con KVO podemos más o menos hacer “broadcasting”, ya que podemos tener varios observadores para la misma propiedad de un objeto.</li>
+	<li>Las notificaciones de KVO son <strong>síncronas</strong> y se producen en el mismo hilo que el cambio de la propiedad. Los observadores de la propiedad serán notificados mediante la llamada a su <code>observeValueForKeyPath</code> inmediatamente después de que se ejecute el <em>setter</em> y antes de la siguiente sentencia.</li>
+</ul>
+
+<pre><code>objeto.propiedadObservada = @&quot;Nuevo valor&quot;;
+//antes de que se ejecute la siguiente sentencia 
+//ya se habrá notificado a los observadores
+NSLog(@&quot;Seguro que ya se han notificado los cambios&quot;);
+
+</code></pre>
+
+<h2>Notificaciones</h2>
+
+<ul>
+	<li>Cuando usamos KVO, hay un cierto acoplamiento entre emisor y receptor, materializado en la llamada a <code>addObserver</code>. Si nos interesesa desacoplar totalmente emisor y receptor podemos usar <strong>notificaciones</strong>.</li>
+	<li>Las notificaciones implementan un sistema de tipo <a href="http://en.wikipedia.org/wiki/Publish%E2%80%93subscribe_pattern">“publicar-suscribir”</a>: Cada aplicación iOS tiene un “centro de notificaciones”. A ese centro se pueden enviar las notificaciones (mensajes con un identificador y un <em>payload</em>). Cualquier objeto puede suscribirse a las notificaciones especificando el identificador que le interesa. </li>
+</ul>
+
+<h3>API de notificaciones</h3>
+
+<ul>
+	<li>Para obtener acceso al <em>singleton</em> que es el centro de notificaciones de nuestra app hacemos:</li>
+</ul>
+
+<pre><code>[NSNotificationCenter defaultCenter]
+</code></pre>
+
+<ul>
+	<li>Para <strong>enviar una notificación</strong>:</li>
+</ul>
+
+<pre><code>NSDictionary *payload = @{@&quot;empresa&quot;: @&quot;AAPL&quot;, @&quot;valor&quot;: @95.55};
+[[NSNotificationCenter defaultCenter] postNotificationName:@&quot;cotizacion&quot; object:self userInfo:payload];
+</code></pre>
+
+<ul>
+	<li>Para <strong>suscribirnos a las notificaciones</strong> que nos interesan podemos usar <code>addObserver:selector:name:object:</code> (luego veremos otra alternativa). Por ejemplo, en una app de bolsa estaríamos interesados en recibir notificaciones sobre los cambios en las cotizaciones:</li>
+</ul>
+
+<pre><code>[[NSNotificationCenter defaultCenter] addObserver:self selector: @selector(nuevaCotizacion:) name:@&quot;cotizacion&quot; object:nil]
+</code></pre>
+
+<ul>
+	<li><p>El <code>selector</code> es el mensaje que se va a enviar al objeto destinatario (el <code>observer</code>)</p>
+
+		<ul>
+			<li>El <code>name</code> es el identificador de la notificación</li>
+			<li>El <code>object</code> es el objeto del que nos interesa recibir notificaciones. Lo habitual será que nos dé igual cuál sea el emisor, en cuyo caso ponemos aquí <code>nil</code> </li>
+		</ul></li>
+	<li>Para <strong>recibir la notificación</strong> tendremos que implementar el selector especificado al registrarnos. Debe tener como único parámetro un objeto de la clase <code>NSNotification</code>, que “empaqueta” tanto el nombre de la notificación como un <code>NSDictionary</code> con el <em>payload</em>. Siguiendo con el ejemplo anterior:</li>
+</ul>
+
+<pre><code>- (void) nuevaCotizacion: (NSNotification *) notificacion {
+    NSLog(@&quot;Recibida notificación: %@, payload: %@&quot;, notificacion.name, notificacion.userInfo); 
+}
+</code></pre>
+
+<ul>
+	<li>El método que hemos usado para suscribirnos a notificaciones nos obliga a implementar un selector especial en el receptor únicamente para recibir la notificación. Con <code>addObserverForName:object:queue:usingBlock:</code> podemos pasar directamente el bloque de código a ejecutar al recibir la notificación. Esto hace el código mucho más “autocontenido” y compacto:</li>
+</ul>
+
+<pre><code>[[NSNotificationCenter defaultCenter] addObserverForName:@&quot;cotizacion&quot; object:nil queue:nil usingBlock:^(NSNotification *notificacion) {
+        NSLog(@&quot;Notificación %@, payload: %@&quot;, notificacion.name, notificacion.userInfo);
+    }];
+
+</code></pre>
+
+<ul>
+	<li><p>El parámetro <code>queue</code> permite especificar una cola de operaciones para procesar la notificación en <em>background</em> (en otro <em>thread</em>). Si lo ponemos a <code>nil</code> será una notificación síncrona. Es decir, se recibirá antes de que termine el <code>postNotification</code>.</p>
+
+		<ul>
+			<li>Nótese que el bloque recibe como parámetro un <code>NSNotification</code>, igual que sucedía con el selector “receptor” en el método anterior de suscripción. Los parámetros <code>name</code> y <code>object</code> también tienen el mismo significado que antes.</li>
+			<li>El método devuelve un objeto que nos servirá para eliminar la suscripción, como luego veremos.</li>
+		</ul></li>
+	<li><p>Finalmente, es importante acordarse de <strong>eliminar una suscripción existente</strong> : si un objeto deja de existir y el centro de notificaciones lo tiene como suscriptor de una notificación intentará enviársela cuando llegue, lo que seguramente hará que la aplicación aborte.</p>
+
+		<ul>
+			<li><p>Hay varios métodos de la clase <code>NSNotificationCenter</code> que podemos usar, los que comienzan por <code>removeObserver:</code></p>
+
+				<ul>
+					<li>Si queremos <em>eliminar todas las suscripciones</em> usaremos <code>removeObserver:</code>.</li>
+					<li>Si queremos <em>eliminar solo algunas suscripciones</em> de un objeto usaremos <code>removeObserver:name:object</code></li>
+				</ul></li>
+			<li><p>Para eliminar la suscripción <em>hay que pasar el objeto que está recibiendo las notificaciones</em> como primer parámetro de <code>removeObserver:</code>. </p>
+
+				<ul>
+					<li>Si nos suscribimos con el primer método (<code>addObserver:selector:...</code>) está claro cuál es ese objeto, lo especificamos al hacer la suscripción</li>
+					<li>Si usamos el segundo método (<code>addObserverForName:...</code>) entonces el objeto que está recibiendo las notificaciones no es uno implementado por nosotros, sino por iOS, y que es el que acaba llamando al bloque que procesa las notificaciones. Este objeto lo obtenemos como resultado de la llamada a <code>addObserverForName:...</code>, por lo que deberíamos guardar esa referencia.</li>
+				</ul></li>
+		</ul></li>
+</ul>
+
+<blockquote>
+<p>Cuidado con referenciar <code>self</code> dentro de un bloque, en ese caso el bloque nos retiene. Eso quiere decir que nunca se llamará a <code>dealloc</code> y por tanto aunque pongamos allí el código para eliminar la suscripción nunca será eliminada. Estaremos reteniendo el objeto que ejecuta el bloque, que a su vez nos retiene a nosotros (<code>self`</code>) y tendremos por tanto un ciclo de referencias que no se pueden liberar.</p>
+</blockquote>
+
+<h3>Notificaciones del sistema</h3>
+
+<ul>
+	<li>Podemos usar notificaciones para recibir también <strong>eventos del sistema</strong>. Muchos objetos de Cocoa pueden enviar notificaciones. Por ejemplo cuando pulsamos el botón de inicio del iPhone/iPad para salir de la aplicación actual se llama al método <code>applicationDidEnterBackground</code> del <code>AppDelegate</code>, pero también podemos suscribir cualquier objeto a la notificación del sistema <code>UIApplicationDidEnterBackgroundNotification</code>. </li>
+</ul>
+
+<pre><code>[[NSNotificationCenter defaultCenter]    
+   addObserverForName:UIApplicationDidEnterBackgroundNotification 
+   object:nil queue:nil
+   usingBlock:^(NSNotification *notif){
+            NSLog(@&quot;Me han dicho que entramos en background&quot;);
+   }];
+</code></pre>
+
+<ul>
+	<li>Hay decenas de notificaciones del sistema distintas, aunque por eficiencia no todas se envían por defecto, algunas hay que activarlas, por ejemplo las del reproductor de música (indicando cambio de canción, modificación del volumen,… ).</li>
+</ul>
+
+<h1>Seleccionar un mecanismo de comunicación</h1>
+
+<p><a href="http://www.objc.io/issue-7/communication-patterns.html">http://www.objc.io/issue-7/communication-patterns.html</a></p>
+
+</body>
+</html>
+

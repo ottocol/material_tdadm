@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Más sobre Objective-C</title>
+	</head>
+<body>
+<h1>Más sobre Objective-C</h1>
+
+<h2>Gestión de memoria</h2>
+
+<ul>
+	<li>Hasta ahora hemos visto cómo reservar memoria con <code>alloc</code> pero no cómo liberarla. Esto es porque desde hace unas cuantas versiones de iOS la liberación de memoria es automática.</li>
+	<li>Lenguajes como Java usan <em>recolección de basura</em> para liberar automáticamente la memoria. El recolector de basura decide cómo actuar en tiempo de ejecución. Por contra, en iOS <em>el compilador inserta automáticamente las instrucciones que liberan la memoria en el punto adecuado</em>. El momento en que se libera la memoria está determinado en tiempo de compilación. </li>
+</ul>
+
+<h3>Cuenta de referencias</h3>
+
+<ul>
+	<li><p>Para saber si un objeto puede ser destruido se usa una <em>cuenta de referencias</em>:</p>
+
+		<ul>
+			<li>Cuando un objeto se crea con <code>alloc</code> la cuenta de referencias es 1.</li>
+			<li>Cuando se asigna a otra variable aumenta automáticamente la cuenta.</li>
+			<li>Otras operaciones, como poner a <code>nil</code> una variable que referenciaba al objeto, disminuyen la cuenta. También por ejemplo si esa variable se sale del ámbito.</li>
+		</ul></li>
+	<li>Cuando la cuenta de referencias llega a 0, automáticamente se libera la memoria. </li>
+</ul>
+
+<blockquote>
+<p>La discusión anterior supone que estamos usando gestión de memoria automática (ARC). En caso contrario el incremento/decremento de la cuenta debe hacerlo explícitamente el programador.</p>
+</blockquote>
+
+<ul>
+	<li>Ver <a href="http://sealedabstract.com/rants/why-mobile-web-apps-are-slow/" title="Why mobile web apps are slow">Why mobile apps are slow</a> para una discusión más detallada de por qué este mecanismo es mucho más eficiente que la recolección de basura en un entorno de memoria restringida, como los dispositivos móviles.</li>
+</ul>
+
+<h3>Propiedades <em>strong</em> vs. <em>weak</em></h3>
+
+<ul>
+	<li>El incremento automático en la cuenta de referencias cuando se asigna un objeto a una variable se da por defecto cuando se usa una variable local o una propiedad definida con <code>@property</code>. Se dice que son referencias de tipo <strong>strong</strong>.</li>
+	<li>La existencia de una referencia <strong>strong</strong> debería reflejar “propiedad” o “responsabilidad” de un objeto sobre otro.</li>
+	<li>Por desgracia el uso de referencias <em>strong</em> puede llevar a la creación de ciclos de objetos que ARC no puede liberar.</li>
+	<li>Para solucionar el problema de los ciclos se introducen las referencias de tipo <strong>weak</strong>. La memoria de un objeto puede ser liberada si solo tiene referencias de este tipo apuntando hacia él.</li>
+	<li>Las referencias <strong>weak</strong> reflejan “colaboración”, pero no “propiedad”. Por ejemplo, XCode usa <em>weak</em> por defecto al crear gráficamente un <em>outlet</em>, ya que la clase no suele ser la dueña de este elemento gráfico (lo será la vista “madre”).</li>
+</ul>
+
+<h2>Bloques</h2>
+
+<ul>
+	<li>Los bloques permiten tratar un fragmento de código como un objeto, asignándolo a una variable, pasándolo como parámetro de un método, etc.</li>
+</ul>
+
+<h3>Definir y usar un bloque </h3>
+
+<ul>
+	<li>Definimos un bloque con el símbolo <code>^</code>, los argumentos y el código que lo compone entre llaves:</li>
+</ul>
+
+<blockquote>
+<p>Aviso: el siguiente código dará un <em>warning</em> indicando que el bloque está siendo definido pero no usado</p>
+</blockquote>
+
+<pre><code>^(int n1, int n2) {
+  NSLog(@&quot;Suma: %d&quot;, n1+n2);
+}
+</code></pre>
+
+<ul>
+	<li>Los bloques también pueden devolver un valor. El tipo de retorno se especifica tras el símbolo <code>^</code>, pero también podría omitirse</li>
+</ul>
+
+<pre><code>//También valdría ^(int n1, int n2)
+^ int (int n1, int n2) {
+  return n1+n2;
+}
+</code></pre>
+
+<ul>
+	<li>Si no hay argumentos se pueden omitir los paréntesis:</li>
+</ul>
+
+<pre><code>^{
+  NSLog(@&quot;Soy un bloque&quot;);
+}
+</code></pre>
+
+<blockquote>
+<p>Si escribimos los ejemplos anteriores en XCode veremos que generan <em>warnings</em>. Es por la misma razón que lo daría la sentencia <code>3+2;</code>: definimos algo pero no lo estamos usando</p>
+</blockquote>
+
+<ul>
+	<li><p>La versión complicada es cuando queremos definir y ejecutar nosotros mismos el bloque. Debemos seguir estos pasos:</p>
+
+		<ol>
+			<li>Declarar la variable que va a contener el bloque</li>
+			<li>Definir el bloque en sí y asignarlo a dicha variable</li>
+			<li>Ejecutar el bloque</li>
+		</ol></li>
+</ul>
+
+<pre><code>//declara “miBloque” como un bloque que no devuelve nada ni tiene parámetros
+void(^miBloque)();
+//define el bloque en sí
+miBloque = ^{
+   NSLog(&quot;@Soy un bloque&quot;);
+};
+//lo ejecuta
+miBloque();
+</code></pre>
+
+<ul>
+	<li><p>En muchos casos el uso será más sencillo al ser bloques <em>anónimos</em>, definidos <em>sobre la marcha</em>. Por ejemplo, algunos métodos de Cocoa requieren bloques en sus parámetros. El siguiente ejemplo de animación con <code>animateWithDuration:animations:completion</code> usa dos parámetros que son bloques de código:</p>
+
+		<ul>
+			<li>En <code>animations</code> especificamos el estado final. iOS interpolará entre el estado actual y el deseado para hacer la animación</li>
+			<li>En <code>completion</code> ponemos un bloque de código a ejecutar <strong>cuando termine</strong> la animación </li>
+		</ul></li>
+</ul>
+
+<pre><code>[UIView animateWithDuration:5.0
+ animations:^{
+ self.myLabel.center = CGPointMake(100, 100);
+ }
+ completion:^(BOOL finished){
+ NSLog(@&quot;Fin!&quot;);
+ }
+];
+</code></pre>
+
+<h3>Clausuras</h3>
+
+<ul>
+	<li>Los bloques de código <em>capturan</em> el valor de las variables que referencian, de modo que pueden usarlo aunque estas variables hayan desaparecido del ámbito largo tiempo antes de que se ejecute el bloque. Una variante del ejemplo anterior:</li>
+</ul>
+
+<pre><code>//Si esto es un view controller, la propiedad &quot;view&quot; referencia a la vista
+// y el método &quot;center&quot; nos devuelve las coordenadas de su centro
+	CGPoint centro = [self.view center];
+[UIView animateWithDuration:2.0
+        delay:10
+        options:UIViewAnimationOptionAutoreverse |UIViewAnimationOptionRepeat
+        animations:^{
+           self.myLabel.center = centro;
+        }
+        completion:nil];
+
+</code></pre>
+
+<ul>
+	<li>En el ejemplo anterior, establecemos un retardo de 10 segundos para comenzar la animación, lo que significa que cuando esta empieza, el método donde estuviera este código seguramente ya ha finalizado. Y aún así dentro del bloque ¡podemos hacer referencia a la variable <code>centro</code> que ya debería estar fuera de ámbito!. Esto ocurre porque los bloques actúan como una <em>clausura</em>, capturando el valor de las variables que referencian </li>
+	<li>Que el valor de las variables esté capturado no significa que sigan existiendo. Dentro del bloque no podríamos asignarle un nuevo valor a <code>centro</code>.</li>
+</ul>
+
+<h3>Bloques y concurrencia</h3>
+
+<ul>
+	<li>Los bloques nos dan la posibilidad de usar una sintaxis concisa y relativamente “limpia” para especificar código que se debe ejecutar de manera concurrente.</li>
+	<li>Aunque en iOS podríamos trabajar directamente con <em>threads</em>, es más sencillo usar abstracciones de un nivel más alto, como las <em>colas de operaciones</em> y la librería <em>Grand Central Dispatch (GCD)</em>. Vamos a ver aquí la primera de estas tecnologías, aunque hay que puntualizar que las colas de operaciones usan GCD en su implementación.</li>
+	<li>Con las colas de operaciones podemos ejecutar trabajos de forma asíncrona. Si es necesario un orden de ejecución podemos especificar dependencias entre los trabajos.</li>
+	<li>Podemos crear una cola con el siguiente código:</li>
+</ul>
+
+<pre><code>NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+</code></pre>
+
+<ul>
+	<li>Podemos especificar un trabajo de diversos modos. Lo más directo es en un bloque con el código a ejecutar (clase <code>NSBlockOperation</code>). Para añadirlo a la cola antes creada haríamos:</li>
+</ul>
+
+<pre><code>[queue addOperation:^{
+       NSLog(@&quot;Yo soy una operación concurrente);
+ }];
+</code></pre>
+
+<ul>
+	<li>Podemos especificar dependencias entre trabajos, de modo que solo se comenzará con uno si han terminado los trabajos de los que se dependía. </li>
+</ul>
+
+<pre><code>NSBlockOperation *op_a = [NSBlockOperation blockOperationWithBlock:^{ NSLog(@&quot;Soy la operación a&quot;);}];
+NSBlockOperation *op_b = [NSBlockOperation blockOperationWithBlock:^{ NSLog(@&quot;Soy la operación b&quot;);}];
+[op_a addDependency:op_b];
+NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+[queue addOperation:op_a];
+[queue addOperation:op_b];
+</code></pre>
+
+<ul>
+	<li>En el ejemplo anterior, primero se realizará la operación “b” y luego la “a”, ya que esta depende de la anterior, aunque se hayan encolado en el orden contrario.</li>
+	<li>Como norma general se recomienda <strong>colocar el código que actualice el interfaz de usuario en el <em>thread</em> principal</strong> del programa, ya que aquí es donde se procesan por defecto los eventos y donde hace su trabajo la librería de UI (<em>UIKit</em>). Trabajando aquí nos evitamos problemas de concurrencia con el GUI. Podemos acceder a este <em>thread</em> con la cola de operaciones “principal”, accesible con el método de clase <code>[NSOperationQueue mainQueue]</code></li>
+	<li>De este modo, si una de nuestras tareas tuviera que hacer cierto procesamiento de datos y luego actualizar el UI con los resultados, haríamos algo como:</li>
+</ul>
+
+<pre><code>NSOperationQueue *queue = [[NSOperationQueue alloc] init];
+//La operación de procesamiento va en otra cola
+[queue addOperation:^{
+      datos = procesar_datos();
+      //Pero la de actualización del UI la hacemos en el hilo principal
+	 [[NSOperationQueue mainQueue] addOperation: ^{
+           dibujar_datos(datos);
+       }];
+ }];
+</code></pre>
+
+<h2>Key-Value coding</h2>
+
+<p>Para usar un <em>getter</em> o un <em>setter</em> convencional debemos saber en tiempo de compilación qué propiedad queremos mostrar o modificar, respectivamente. ¿Pero qué ocurre si la queremos determinar dinámicamente?. Por ejemplo, queremos mostrar todas las propiedades de un objeto pero no sabemos cómo se llaman ni cuántas hay.</p>
+
+<p>Con KVC especificamos el nombre de la propiedad a obtener/fijar como un <code>NSString</code> y por tanto podemos calcularlo dinámicamente, en tiempo de ejecución.</p>
+
+<pre><code>NSString *nomPropiedad;
+...
+//Le damos el valor que sea a &quot;nomPropiedad&quot;
+...
+//Accedemos al valor de la propiedad con nombre &quot;nomPropiedad&quot;
+id valor = [unObjeto valueForKey:nomPropiedad];
+//La cambiamos
+id nuevoValor = ...
+[unObjeto setValue:nuevoValor forKey:nomPropiedad] 
+
+</code></pre>
+
+<p>Por ejemplo, podemos ver cómo mostrar todas las propiedades de un objeto</p>
+
+<pre><code>unsigned int num_props;
+objc_property_t *props = class_copyPropertyList([UAPersona class], &amp;num_props);
+for(int i=0; i&lt;num_props; i++) {
+  NSString *nomPropiedad = [NSString 
+           stringWithUTF8String:property_getName(props[i])];
+  NSLog(@&quot;%@:%@&quot;, nomPropiedad, [unObjeto  valueForKey:nomPropiedad]);
+}
+free(props);
+</code></pre>
+
+<p>Para que una clase sea “KVC-compliant” debe seguir las convenciones de nombre que ya hemos visto para el <em>getter</em> y el <em>setter</em>.</p>
+
+<p>Cuidado, podemos usar KVC para obtener el valor de cualquier variable de instancia, aunque esté marcada como <code>@private</code> (o esté definida en la implementación). Además, automáticamente se asumirá que la variable de instancia se llama como la propiedad precedida del subrayado </p>
+
+<p>Si aplicamos KVC sobre una colección es como si estuviéramos aplicándolo secuencialmente sobre cada uno de los elementos. Por ejemplo podemos obtener un array con todos los valores de determinada propiedad</p>
+
+<pre><code>NSArray *nombres = [lista valueForKey:@&quot;nombres&quot;];
+</code></pre>
+
+<p>O Podemos cambiar determinada propiedad para todos los componentes de una colección</p>
+
+<pre><code>[lista setValue:@&quot;100&quot; forKey:@&quot;credito&quot;]
+</code></pre>
+
+<h2>Extender clases sin usar herencia: categorías y extensiones</h2>
+
+<ul>
+	<li>Algunas veces necesitamos “personalizar” una clase, ampliando su comportamiento. Para esto, en POO habitualmente se usa la herencia, pero no siempre es adecuada.</li>
+</ul>
+
+<h3>Categorías</h3>
+
+<ul>
+	<li>Nos permiten añadir comportamiento a una clase ya existente sin modificar directamente su código ni usar herencia. Esto se conoce en programación como “<a href="http://en.wikipedia.org/wiki/Monkey_patch">monkey patching</a>” </li>
+	<li>Solo podemos añadir métodos, no propiedades ni variables de instancia.</li>
+	<li><p>Uso 1: cuando no queremos o podemos modificar el código o la herencia no es adecuada o es imposible</p>
+
+		<ul>
+			<li>Por ejemplo, queremos ampliar el comportamiento de la clase <code>NSString</code> No podemos modificarla ya que no tenemos los fuentes.</li>
+			<li>Incluso aunque los tuviéramos, si heredamos de <code>NSString`</code>nos dejamos fuera por ejemplo <code>NSMutableString</code>. Y si heredamos de esta última estamos obligando a usar esta clase para tener la funcionalidad.</li>
+		</ul></li>
+	<li>Uso 2: modularizar las funcionalidades de la clase dividiendo el archivo en varios</li>
+	<li>Ejemplo: añadir una capitalización “alternating caps” a <code>NSString</code>(EsTo Es AlTeRnAtInG CaPs)</li>
+	<li>Se define la categoría como si estuviéramos “creando de nuevo” la clase “original”. El nombre de la categoría se pone a continuación entre paréntesis.</li>
+	<li>Por convención, el fichero donde se define la categoría se nombra como <em><code>nombre_clase_original</code></em>+<em>nombre<em>categoría</em></em></li>
+</ul>
+
+<pre><code>//Fichero “NSString+NSStringPlus.h”
+import &lt;Foundation/Foundation.h&gt;
+
+@interface NSString (NSStringPlus)
+   -(NSString *)alternatingCaps;
+@end
+ //Fichero “NSString+NSStringPlus.m”
+import &quot;NSString+NSStringPlus.h&quot;
+import &quot;ctype.h&quot;
+
+@implementation NSString (NSStringPlus)
+-(NSString *)alternatingCaps {
+int largo = self.length;
+char copia[255];
+//Convertimos a array de chars de C
+[self getCString:copia
+maxLength:255
+encoding:NSUTF8StringEncoding];
+//Manipulamos los caracteres
+for (int i=0; i&lt;largo; i++) {
+if (i%2==0)
+copia[i] = tolower(copia[i]);
+else
+copia[i] = toupper(copia[i]);
+}
+//Devolvemos el array convertido a NSString
+return [NSString stringWithUTF8String:copia];
+}
+@end
+</code></pre>
+
+<h3>Extensiones</h3>
+
+<ul>
+	<li>Permiten ampliar o modificar el API interno de una clase. Se pueden añadir métodos, propiedades y variables de instancia que desde fuera no van a ser visibles.</li>
+	<li>Sintaxis similar a las categorías pero omitiendo nombre. La extensión se declara en el <code>.m</code> y si declara métodos estos se implementan en el bloque de <code>@implementation</code>.</li>
+	<li>Uso 1: establecer un API interno “formal”, que pueda chequear el compilador</li>
+	<li>Uso 2: redefinir propiedades del API público por ejemplo para cambiar su accesibilidad (de solo lectura en público a escritura en privado)</li>
+</ul>
+
+<blockquote>
+<p>En versiones antiguas del compilador había que declarar los métodos privados antes de poder usarlos, así que al parecer muchos desarrolladores usaban extensiones para esto, ya que de todas formas tenían que declarar estos métodos.</p>
+</blockquote>
+
+<h2>Gestión de errores</h2>
+
+<ul>
+	<li><p>Objective-C tiene dos mecanismos estándar para la gestión de errores: </p>
+
+		<ul>
+			<li>Excepciones</li>
+			<li>Manejo “estilo C” con <code>NSError</code>.</li>
+		</ul></li>
+	<li>Al contrario que en lenguajes como C++ y Java, las excepciones no deben usarse para errores “previsibles”, como por ejemplo un fallo de la conexión de red, sino para errores de programación, como por ejemplo salirse de un array. Para los primeros se debería usar <code>NSError</code></li>
+</ul>
+
+<h3>Excepciones</h3>
+
+<ul>
+	<li>Uso básico</li>
+</ul>
+
+<pre><code>@try {
+ // código que podría producir una excepción
+ }
+@catch (NSException *exception) {
+  // tratar la excepción
+}
+  @finally {
+  // Se ejecuta se haya producido o no excepción
+}￼ ￼
+</code></pre>
+
+<ul>
+	<li><code>Foundation</code> tiene una clase <code>NSException</code>, que podemos usar como base de la herencia para nuestras propias excepciones</li>
+	<li>A diferencia de Java, se puede lanzar cualquier objeto (en Java solo se puede lanzar algo que herede de <code>Throwable</code>)</li>
+</ul>
+
+<pre><code>@throw @&quot;Han pasado cosas muy malas&quot;
+</code></pre>
+
+<ul>
+	<li><strong>Aserciones</strong>: en cualquier punto del código podemos comprobar si se cumple una condición. Si no se cumple se generará automáticamente una <code>NSInternalInconsistencyException</code>.</li>
+</ul>
+
+<h3>Gestión “clásica”</h3>
+
+<ul>
+	<li>En los lenguajes que no usan excepciones, normalmente es el programador el responsable de comprobar si se ha producido o no un error tras ejecutar una sentencia y seguir el curso de acción adecuado en los dos casos. Esto es lo habitual en C.</li>
+	<li>En Objective C se recomienda esta filosofía cuando se trate de errores “previsibles” (fichero no encontrado, conexión de red no disponible,…)</li>
+	<li><p><code>Foundation</code> nos ofrece la clase <code>NSError</code> para representar un error. Contiene los siguientes campos:</p>
+
+		<ul>
+			<li>Un <code>NSInteger*</code>, código del error. Se asume que los códigos son únicos en un “dominio” o campo de aplicación, pero pueden repetirse en global</li>
+			<li>Un <code>NSString*</code> con un mensaje de error</li>
+			<li>Un <code>NSDictionary*</code> con información adicional</li>
+		</ul></li>
+	<li>Muchos métodos de Cocoa devuelven los errores por referencia, por lo que para obtener el error tendremos que pasar un puntero a <code>NSError*</code></li>
+</ul>
+
+<pre><code>NSError *miError;
+BOOL ok = [receivedData writeToURL:someLocalFileURL
+  options:0
+  error:&amp;miError];
+if (!ok) {
+  NSLog(@&quot;Se ha producido un error: %@&quot;, miError);
+}
+</code></pre>
+
+</body>
+</html>
+
