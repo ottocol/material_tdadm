@@ -1,5 +1,5 @@
 #Tecnologías para el desarrollo de aplicaciones en dispositivos móviles
-##Sesión 4: Comunicación entre objetos
+##Comunicación entre objetos
 
 ---
 
