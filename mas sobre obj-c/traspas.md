@@ -1,5 +1,5 @@
 #Tecnologías para el desarrollo de aplicaciones en dispositivos móviles
-##Sesión 3: Más sobre Objective-C
+##Más sobre Objective-C
 
 ---
 
