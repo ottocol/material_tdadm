@@ -225,57 +225,10 @@ NSArray *nombres = [lista valueForKey:@"nombres"];`
 
 ##Modificar una clase sin herencia: categorías y extensiones
 
-Algunas veces necesitamos “personalizar” una clase, ampliando su comportamiento. Para esto, en POO habitualmente se usa la herencia, pero no siempre es adecuada.
+Para *personalizar* una clase ampliando su comportamiento habitualmente se usa la herencia, pero no siempre es adecuada.
 
----
-
-##Categorías
-
-- Añadir comportamiento a una clase existente sin modificar directamente su código ni usar herencia. *(monkey patching)* 
-- Solo podemos añadir métodos, no propiedades ni variables de instancia
-- Usos típicos
-    - No queremos o podemos modificar el código o la herencia no es adecuada o es imposible
-    - Modularizar las funcionalidades de la clase dividiendo el archivo en varios
-
----
-
-##Ejemplo de categoría
-
-Añadir una capitalización “alternating caps” a `NSString`(EsTo Es AlTeRnAtInG CaPs)
-
-- Se crea una nueva clase con nombre `clase_original+clase_categoria`
-
-<pre><code class="objectivec" data-trim>
-//Fichero “NSString+NSStringPlus.h”
-import &lt;Foundation/Foundation.h&gt;
-
-@interface NSString (NSStringPlus)
-   -(NSString *)alternatingCaps;
-@end
-</code></pre>
-
----
-
-##Ejemplo de categoría (2)
-
-
-<pre><code class="objectivec" data-trim>
-//Fichero “NSString+NSStringPlus.m”
-import "NSString+NSStringPlus.h"
-import "ctype.h"
-
-@implementation NSString (NSStringPlus)
--(NSString *)alternatingCaps {
-    //aquí implementaríamos el código, ver apuntes
-...
-</code></pre>
-
----
-
-##Extensiones
-
-- Para ampliar o modificar el API interno de una clase. Se pueden añadir métodos, propiedades y variables de instancia **que desde fuera no van a ser visibles**.
-- La extensión se declara en el @interface del `.m` y si declara métodos estos se implementan en el bloque de `@implementation`.
+- **Categorías**: añadir comportamiento a una clase existente sin modificar directamente su código ni usar herencia. *(monkey patching)* 
+- **Extensiones**: ampliar o modificar el API interno de una clase. Se pueden añadir métodos, propiedades y variables de instancia *que desde fuera no van a ser visibles*∫. 
 
 ---
 
@@ -302,9 +255,13 @@ import "ctype.h"
   // optional block of clean-up code
   // executed whether or not an exception occurred
 }
-</code></pre>￼ ￼
+</code></pre>
+￼ ￼
 
-- Lanzar una excepción
+
+---
+
+##Lanzar una excepción
 
 <pre><code class="objectivec" data-trim>
 //A diferencia de Java/C++ se puede lanzar cualquier objeto, herede de quien herede
