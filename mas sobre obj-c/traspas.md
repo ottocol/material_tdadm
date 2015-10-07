@@ -279,7 +279,7 @@ NSError *miError;
 BOOL ok = [receivedData writeToURL:someLocalFileURL
   options:0
   error:&amp;miError];
-if (!ok) {
+if (miError) {
   NSLog(@"Se ha producido un error: %@", miError);
 }
 </code></pre>
