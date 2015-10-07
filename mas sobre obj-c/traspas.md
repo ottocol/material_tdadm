@@ -5,7 +5,7 @@
 
 ##Puntos a tratar
 
-- Gestión de memoria dinámica
+- Gestión de la memoria dinámica
 - Bloques
 - *Key-Value-Coding*
 - Extender clases sin herencia
@@ -13,23 +13,61 @@
 
 ---
 
-##Gestión de memoria dinámica en iOS
+# Gestión de la memoria dinámica
+
+---
+
+##Cómo liberar memoria
 
 - Hemos visto cómo reservar memoria con `alloc` pero no cómo liberarla. **La liberación de memoria es automática**.
+
 - En la mayoría de lenguajes de este tipo se usa *Recolección de basura* (Java, Python,...). Se decide cómo actuar en **tiempo de ejecución**
+
 - En iOS *el compilador inserta automáticamente las instrucciones que liberan la memoria en el punto adecuado*. El momento en que se libera la memoria se determina en **tiempo de compilación**. 
+
 
 ---
 
 ##Cuenta de Referencias Automática (ARC)
 
 - Para cada objeto se mantiene una **cuenta de referencias**
-  - Cuando se reserva con `alloc` la cuenta se pone a 1
-- Algunas operaciones incrementan la cuenta en 1
-    - Asignar el objeto a otra variable
-    - Recibir el objeto como argumento de un método
-- El compilador se asegura de que por cada vez que ha incrementado la cuenta se decrementa (hay un *balanceo*)
-- Cuando la cuenta llega a **0** se libera la memoria
+
+- Cuando se reserva con `alloc` la cuenta se pone a 1
+
+```objectivec
+NSMutableString *mensaje;  //cuenta=0;
+mensaje = [[NSMutableString alloc] initWithString:@"Hola"]; //cuenta=1
+```
+
+---
+
+Algunas operaciones incrementan la cuenta en 1
+
+  * Asignar el objeto a otra variable
+  * Recibir el objeto como argumento de un método
+
+```objectivec
+NSMutableString *mensaje;  //cuenta=0;
+mensaje = [[NSMutableString alloc] initWithString:@"Hola"]; //cuenta=1
+mensaje2 = mensaje; //cuenta=2
+```
+
+---
+
+El compilador se asegura de que por cada vez que ha incrementado la cuenta se decrementa (hay un *balanceo*)
+
+```objectivec
+- (void) hacerUnaCosita {
+  NSMutableString *mensaje;  //cuenta=0;
+  mensaje = [[NSMutableString alloc] initWithString:@"Hola"]; //cuenta=1
+  mensaje2 = mensaje; //cuenta=2
+}
+```
+Al salir del método, ambas variables se pierden ya que eran locales. El compilador decrementa 1 por cada variable
+
+---
+
+Finalmente, **cuando la cuenta llega a 0 se libera la memoria**
 
 ---
 
@@ -48,6 +86,9 @@
     [release objeto];
 }
 </code></pre>
+
+<!--.element class="fragment"--> Con ARC **es el compilador el que introduce automáticamente los `retain/release`**
+
 
 ---
 
@@ -69,6 +110,11 @@
 NSString * __weak referencia_debil;
 ```
 - Regla práctica: usar las referencias normales (**strong**) solo cuando queramos reflejar propiedad o responsabilidad de un objeto sobre otro
+
+---
+
+# Bloques
+
 
 ---
 
@@ -109,7 +155,7 @@ Permiten **tratar un fragmento de código como un objeto**, pudiéndolo asignar 
 }
 </code></pre>
 
-Estos ejemplos darán *warnings* ya que estamos definiendo bloques pero no usándolos
+*Estos ejemplos, escritos tal cual en código darán *warnings* ya que estamos definiendo bloques pero no usándolos*
 
 ---
 
@@ -163,10 +209,10 @@ Abstracción que permite *multithreading* sin tener que asignar explícitamente 
 
 <pre><code class="objectivec">
 NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-[queue addOperation:^{
+[queue addOperationWithBlock:^{
        NSLog(@"Yo soy una operación concurrente");
 }];
-[queue addOperation:^{
+[queue addOperationWithBlock:^{
        NSLog(@"Yo también soy concurrente");
 }];
 </code></pre>
@@ -188,6 +234,10 @@ NSOperationQueue *queue = [[NSOperationQueue alloc] init];
        }];
  }];
 </code></pre>
+
+---
+
+# *Key-Value-Coding*
 
 ---
 
@@ -223,12 +273,21 @@ NSArray *nombres = [lista valueForKey:@"nombres"];`
 
 ---
 
-##Modificar una clase sin herencia: categorías y extensiones
+# Modificar una clase sin usar herencia
+
+---
+
+##Categorías y extensiones
 
 Para *personalizar* una clase ampliando su comportamiento habitualmente se usa la herencia, pero no siempre es adecuada.
 
 - **Categorías**: añadir comportamiento a una clase existente sin modificar directamente su código ni usar herencia. *(monkey patching)* 
 - **Extensiones**: ampliar o modificar el API interno de una clase. Se pueden añadir métodos, propiedades y variables de instancia *que desde fuera no van a ser visibles*∫. 
+
+---
+
+# Gestión de errores
+
 
 ---
 
