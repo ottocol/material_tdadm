@@ -226,10 +226,10 @@ NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 <pre><code class="objectivec" data-trim>
 NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 //Tenemos un trabajo que queremos hacer concurrente, dado su coste
-[queue addOperation:^{
+[queue addOperationWithBlock:^{
       datos = procesar_datos();
       //Pero la  actualización del UI la hacemos en el hilo principal
-      [[NSOperationQueue mainQueue] addOperation: ^{
+      [[NSOperationQueue mainQueue] addOperationWithBlock: ^{
            dibujar_datos(datos);
        }];
  }];
