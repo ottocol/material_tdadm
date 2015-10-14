@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" type="text/css" href="css/style.css" />
+		<title>Depuración en Xcode</title>
+	</head>
+<body>
+<h2>Depuración en Xcode</h2>
+
+<h3>Depuración “clásica” con NSLog y Asserts</h3>
+
+<ul>
+	<li>La depuración clásica consiste en alterar el código fuente de forma temporal añadiendo una serie de directivas con el fin de mostrar mensajes informativos en la consola. Como ya hemos visto, la función habitual para enviar mensajes a la consola de XCode es <code>NSLog()</code></li>
+</ul>
+
+<blockquote>
+<p>Antes de generar el binario de distribución para la App Store deberíamos eliminar todas las llamadas a <code>NSLog</code> que tengamos en el código para así dejar &quot;limpia&quot; la aplicación y evitar una posible relentización de la ejecución debido a la escritura en la consola.</p>
+</blockquote>
+
+<ul>
+	<li>Otro tipo de función con la cual podemos depurar nuestro código por consola es el llamado <strong>Assert</strong>. Los Asserts (o <em>aserciones</em>) son condiciones que se deben de cumplir para que continue la ejecución en un determinado momento. Estas deben de devolver <code>true</code>. En el caso de que algún assert no se cumpla se producirá una excepción en fase de ejecución que detendrá la aplicación en ese mismo instante almacenando todo el &quot;log&quot; en XCode para su posterior depuración.</li>
+	<li>La directiva assert en Objective-C viene en forma de macro <code>assert()</code> a la cual se le pasa una condición que será que se tenga que evaluar a verdadero o falso. Si se evalúa a falso la aplicación se detendrá mostrando en la consola un log y si se evalúa a verdadero la aplicación continuará con su ejecución. Los asserts son usados frecuementes en APIs así como en códigos en fases de testeo.</li>
+</ul>
+
+<pre><code>assert(valor &lt; maximoValor);
+</code></pre>
+
+<ul>
+	<li><code>assert</code> hace que el programa aborte inmediatamente cuando falla la aserción</li>
+	<li><p>De modo alternativo podemos usar <code>NSAssert</code>, que a diferencia de <code>asssert</code>:</p>
+
+		<ul>
+			<li>Cuando falla la aserción no aborta directamente sino que genera una excepción de tipo <code>NSInternalInconsistencyException</code> (que por supuesto también causará un <em>crash</em> si no la capturamos).</li>
+			<li>Nos permite especificar un mensaje de error con argumentos</li>
+		</ul></li>
+</ul>
+
+<pre><code>NSAssert(valor &lt; maximoValor, @&quot;El valor %i es demasiado grande (max.:%i)!&quot;, valor, maximoValor);
+</code></pre>
+
+<h3>El depurador integrado de Xcode</h3>
+
+<ul>
+	<li>El depurador visual integrado en Xcode es muy similar a los que hay en otros IDES. Podemos fijar <em>breakpoints</em> clicando en el margen izquierdo del código, y una vez parada la ejecución podemos ver el valor de las variables, continuar con la ejecución hasta el siguiente <em>breakpoint</em>, ir paso a paso, etc.</li>
+</ul>
+
+<blockquote>
+<p>A diferencia de otros IDEs no hay un modo especial de ejecución para depurar el código, se parará en los <em>breakpoints</em> cuando ejecutamos la aplicación normalmente con <code>Product &gt; Run</code> (o con el botón de “play” de la barra de herramientas). No obstante, en el “Breakpoint Navigator” podemos deshabilitar todos los <em>breakpoints</em> si queremos ignorarlos en un momento dado.</p>
+</blockquote>
+
+<ul>
+	<li>Una funcionalidad muy interesante es la de <strong>Quick Look</strong>, que nos permite ver el contenido de ciertas variables de forma “gráfica”. Por ejemplo si se trata de un <code>UIImage</code> podemos ver una versión en pequeño de la imagen para comprobar rápidamente que corresponde con lo que esperamos</li>
+</ul>
+
+<figure><img src="quick_look_con_imagen.png"/></figure>
+
+<ul>
+	<li>Como se ve en la figura anterior, cuando estamos depurando el código y la ejecución está parada en un punto, pasando el ratón por encima de una variable aparece un <em>tooltip</em> con información sobre ella. Pulsando sobre el pequeño icono en forma de “ojo” que aparece en el <em>tooltip</em> activamos el <em>quick look</em>. También podemos hacerlo pulsando el mismo icono en el “área de depuración” (parte inferior de la pantalla), donde aparecen las variables actuales</li>
+</ul>
+
+<figure><img src="quick_look_debug_area.png"/></figure>
+
+<ul>
+	<li><em>Quick look</em> funciona con muchos tipos de variables: vistas (componentes de la interfaz de usuario, que como hemos visto aparecen “en pequeño”), localizaciones geográficas (aparece un mapa centrado en la localización), <em>frames</em> de vistas (aparece un rectángulo con las proporciones adecuadas y una anotación con el tamaño actual),curvas dibujadas con el API de gráficos, … </li>
+</ul>
+
+<h2>Testing</h2>
+
+<ul>
+	<li>XCode tiene desde la versión 5 un <em>framework</em> de <em>testing</em> llamado <code>XCTest</code> (en las versiones anteriores se usaba otro distinto, denominado <code>OCUnit</code>).</li>
+	<li>Desde Xcode 5, cuando creamos un proyecto se crea automáticamente un conjunto de pruebas unitarias vacío y un <em>target</em> para ejecutar esas pruebas con el mismo nombre del proyecto pero acabado en <code>&quot;Test&quot;</code>. Si tenemos un proyecto ya creado sin pruebas unitarias, podemos crearlas con <code>File &gt; New &gt; Target &gt; Cocoa touch unit test</code>.</li>
+	<li><p>En <code>XCTest</code> hay varios tipos distintos de pruebas unitarias:</p>
+
+		<ul>
+			<li><strong>Tests de “lógica”</strong>: las clásicas pruebas en las que comprobamos si determinado método funciona o no correctamente.</li>
+			<li><strong>Tests de “lógica” en modo asíncrono</strong>:</li>
+			<li><strong>Tests de tiempo de respuesta</strong>: en los que podemos ver estadísticas del tiempo que tarda en ejecutarse determinado bloque de código. Podemos fijar un <em>baseline</em> de tiempo de modo que el test se considerará que no pasa si está por encima del <em>baseline</em></li>
+		</ul></li>
+</ul>
+
+<h3>El navegador de Tests</h3>
+
+<ul>
+	<li>Para moverse por los tests, lo más sencillo es usar el <em>Test Navigator</em>, que aparece en el área de Navegadores, a la izquierda de la pantalla. Su icono es el quinto por la izquierda, un rombo <img src="rombo_navigator.png"/>. En este navegador podemos ver todos los tests, ir al fuente clicando sobre el nombre del test y ejecutarlos pulsando sobre el pequeño botón de “play” que aparece a la derecha cuando pasamos el ratón por encima.</li>
+</ul>
+
+<figure><img src="test_navigator.png"/></figure>
+
+<h3>Escribir y ejecutar pruebas unitarias</h3>
+
+<ul>
+	<li>Como ya hemos dicho, <code>XCTest</code> es muy similar a otros <em>frameworks</em> de pruebas unitarias como <code>JUnit</code>, así que no es muy complicado de usar para alguien que ya haya usado los otros.</li>
+	<li>Por ejemplo, supongamos que tenemos un juego de tres en raya con el siguiente interfaz (simplificado)</li>
+</ul>
+
+<pre><code>typedef enum {
+  Casilla_Vacia,Casilla_X,Casilla_O
+} Casilla;
+
+@interface TresEnRayaModelo : NSObject
+- (id) init;
+- (Casilla) getCasillaFila:(int)fila Columna:(int)columna;
+- (void) setCasilla:(Casilla)valor Fila:(int)fila Columna:(int)columna;
+@end
+
+</code></pre>
+
+<p> Vamos a comprobar varias cosas</p>
+
+<ul>
+	<li><p>Que cuando se inicializa el tablero todas las casillas están vacías</p>
+
+		<ul>
+			<li>Que las casillas se pueden obtener/fijar correctamente a un valor dado</li>
+			<li>Que cuando se intenta obtener/fijar una casilla que no existe se produce una excepción</li>
+		</ul></li>
+</ul>
+
+<h4>Estructura de una <em>suite</em> de pruebas</h4>
+
+<ul>
+	<li>Iríamos a la plantilla de clase de pruebas que ha creado Xcode e introduciríamos el siguiente código</li>
+</ul>
+
+<pre><code>@interface TresEnRayaTests : XCTestCase
+
+@end
+
+@implementation TresEnRayaTests {
+    TresEnRayaModelo *ter;
+}
+
+- (void)setUp {
+    [super setUp];
+    ter = [[TresEnRayaModelo alloc] init];
+}
+
+- (void)tearDown {
+    // Put teardown code here. This method is called after the invocation of each test method in the class.
+    [super tearDown];
+}
+
+- (void)testInitDevuelveTableroVacio {
+    for (int fila=0;fila&lt;3;fila++)
+        for(int col=0;col&lt;3;col++) {
+            XCTAssertEqual(Casilla_Vacia, [ter getCasillaFila:fila Columna:col]);
+        }
+}
+
+-(void)testCasillaIncorrectaGeneraExcepcion {
+    XCTAssertThrows([ter getCasillaFila:10 Columna:10], @&quot;Debería lanzar excepción&quot;);
+    XCTAssertThrows([ter setCasilla:Casilla_X Fila:10 Columna:10], @&quot;Debería lanzar excepción&quot;);
+}
+
+@end
+</code></pre>
+
+<ul>
+	<li><p>Hay varios puntos a destacar:</p>
+
+		<ul>
+			<li>Por defecto <strong>la plantilla coloca el <code>@interface</code> y la <code>@implementation</code></strong> de la clase de la <em>suite</em> de tests <strong>en el mismo archivo <code>.m</code></strong>. Esto es adecuado en la mayoría de los casos, ya que no vamos a referenciar la <em>suite</em> desde otras clases y no necesitamos por tanto un <code>@interface</code> separado</li>
+			<li>Al igual que en <code>JUnit</code> hay dos métodos: <code>setup</code> y <code>teardown</code> que se ejecutan al inicio y al final de cada test, respectivamente.</li>
+			<li>Las pruebas unitarias se implementan en métodos que deben devolver <code>void</code> y cuyo nombre debe comenzar por <code>test</code>. </li>
+			<li>Comprobamos el correcto funcionamiento de la lógica con los métodos <code>XCTAssert</code></li>
+		</ul></li>
+</ul>
+
+<h4>Aserciones</h4>
+
+<p>En todas las aserciones podemos poner como parámetro final un mensaje (Un <code>NSString</code>) que aparecerá si falla el test</p>
+
+<pre><code>XCTAssertTrue(NO, @&quot;Esta prueba va a fallar seguro&quot;);
+</code></pre>
+
+<p>Tenemos varios tipos de aserciones, por ejemplo: </p>
+
+<ul>
+	<li><code>XCTAssertTrue</code> y <code>XCTAssertFalse</code> comprueban que algo es cierto o falso, respectivamente</li>
+	<li><code>XCTAssertEqual</code> sirve para comprobar la igualdad de valores escalares. En el ejemplo lo hemos usado para comprobar el contenido de las casillas al ser este un <code>enum</code>. Tenemos también el contrario, <code>XCTAssertNotEqual</code></li>
+	<li><code>XCTAssertEqualObjects</code> es como el anterior, pero para comparar igualdad entre objetos. Internamente llama al <code>isEqual</code>.</li>
+	<li><code>XCTAssertThrows</code>comprueba que una llamada a un método genera una excepción. Opcionalmente, podemos comprobar que además la excepción es de una clase específica.</li>
+</ul>
+
+<p>Se recomienda consultar la documentación de Apple para <a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/testing_with_xcode/testing_3_writing_test_classes/testing_3_writing_test_classes.html#//apple_ref/doc/uid/TP40014132-CH4-SW34">más detalles sobre los distintos tipos de aserciones</a>.</p>
+
+<h4>Ejecutar las pruebas y ver el resultado</h4>
+
+<ul>
+	<li>En el <em>Test navigator</em> podemos pulsar el pequeño botón de “play” que aparece al pasar el ratón por encima de cada test, para ejecutarlo individualmente o bien el que aparece en la <em>suite</em> completa para ejecutar todas sus pruebas.</li>
+	<li>Se pondrá en marcha el simulador de iOS con la aplicación, ejecutará las pruebas y terminará. En el <em>test navigator</em> y en el código fuente de la <em>suite</em> aparecerá un icono al lado de cada test indicando si ha pasado o no. Si no ha pasado aparecerá además un mensaje en el fuente indicándolo. También podemos ver los mensajes de error en el <em>Log Navigator</em>.</li>
+</ul>
+
+<h4>Pruebas de tiempo de respuesta</h4>
+
+<p>Con Xcode 6 se introduce un nuevo tipo de tests: los de tiempo de respuesta. Podemos ver estadísticas sobre el tiempo que tarda en ejecutarse un determinado bloque de código. Esto lo hacemos con el método <code>measureBlock</code>, que acepta el bloque a ejecutar como parámetro</p>
+
+<pre><code>- (void) testInitTableroPerformance {
+    [self measureBlock:^{
+        for(int i=1;i&lt;=100000;i++) {
+            TresEnRayaModelo *modelo = [[TresEnRayaModelo alloc] init];
+        }
+    }];
+}
+</code></pre>
+
+<p>Cuando ejecutamos el test el bloque se ejecutará automáticamente 10 veces y nos aparecerán estadísticas sobre el tiempo medio y la desviación típica. Podemos usar estas estadísticas para fijar un <em>baseline</em>, un tiempo de referencia para la ejecución (se puede fijar un <em>baseline</em> por separado para cada hardware:iPhone 6/5, iPad Air, …)</p>
+
+<figure><img src="performance_test.png"/></figure>
+
+<h2>Referencias</h2>
+
+<ul>
+	<li><a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/testing_with_xcode/Introduction/Introduction.html#//apple_ref/doc/uid/TP40014132">Guía de apple</a> sobre pruebas unitarias en Xcode 5 y posterior</li>
+</ul>
+
+</body>
+</html>
+
