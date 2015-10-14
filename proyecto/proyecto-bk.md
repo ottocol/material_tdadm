@@ -20,10 +20,7 @@ Aclaraciones:
             Bastos, Copas, Espadas, Oros
         }  Palo;
         ```
-    
-    - `getNombrePalo` debe devolver el nombre del palo como un `NSString *` (`Bastos, `Copas`,...). Luego veremos que sirve para referenciar las imágenes de las cartas.
-    
-    > Como `palo` es una propiedad `readonly`, dentro del inicializador de la clase no podréis hacer `self.palo = palo`. Podéis cambiar el valor de la propiedad accediendo directamente a la variable de instancia que hay "tras ella": `_palo = palo`, con lo que os saltáis las restricciones de la `@property`. A `_palo` no se puede acceder directamente desde fuera de la clase `Carta`.
+    - `nombrePalo` debe devolver el nombre del palo como un `NSString *` (`Bastos, `Copas`,...). Luego veremos que sirve para referenciar las imágenes de las cartas.
 
 - Clase `Juego`:
     +  `Estado` es un tipo enumerado que representa el estado del juego: por ejemplo que es el turno del jugador, que es el turno de la máquina, que el jugador se ha pasado,... podéis elegir los estados que consideréis necesarios.
@@ -70,7 +67,7 @@ En la interfaz completada deberían aparecer las cartas en pantalla conforme se 
 - Como se ve, cada imagen tiene un nombre al estilo `1bastos`, `12copas`,... podéis cargar en memoria la imagen con un código similar al siguiente (todavía no se verá en pantalla):
 
 ```objectivec
-NSString *nombreImagen = [NSString stringWithFormat:@"%d%@", carta.valor, carta.getNombrePalo()];
+NSString *nombreImagen = [NSString stringWithFormat:@"%d%@", carta.valor, carta.nombrePalo];
 UIImage *imagenCarta = [UIImage imageNamed:nombreImagen];
 ```
 - Para ver la imagen en pantalla tenemos que crear una `UIImageView` que muestre la `UIImage` anterior , fijar sus coordenadas y añadirla como subvista de la vista actual
