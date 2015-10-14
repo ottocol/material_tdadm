@@ -1,5 +1,5 @@
 #Tecnologías para el desarrollo de aplicaciones en dispositivos móviles
-##Sesión 5: *Testing* en Xcode
+##Sesión 6: *Testing* en Xcode
 
 ---
 
@@ -15,6 +15,7 @@
 - Pruebas unitarias
 - Pruebas unitarias en modo asíncrono
 - Pruebas de tiempo de respuesta 
+- Pruebas de interfaz de usuario
 
 ---
 
