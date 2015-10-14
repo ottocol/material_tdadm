@@ -1,20 +1,19 @@
 # MiniProyecto de iOS de Tecnologías de Desarrollo: Juego de las siete y media
 
-Se propone implementar el conocido juego de cartas de "las 7 y media". Podéis implementar la versión completa en la que el usuario juega contra la máquina o bien una versión simplificada en la que el usuario intenta superar una puntuación calculada al azar y pierde si no llega o si se pasa de 7 y media
-
+Se propone implementar el conocido juego de cartas de "las 7 y media". Podéis implementar la versión "completa" en la que el usuario juega contra la máquina, ambos sacando cartas una a una y decidiendo si plantarse o seguir, o bien una versión simplificada en la que la máquina no pide cartas sino que obtiene una puntuación generada al azar.
 
 #El modelo 
 
 ##Estructura de clases (1.5 puntos)
 
-Primero se deben crear las clases que componen el modelo, que se muestran en el siguiente diagrama UML:
+Primero se deben crear las clases que componen el modelo, que se muestran en el siguiente diagrama UML. Las líneas indican dependencias entre clases:
 
 ![](modelo.png)
 
 Aclaraciones:
 
 - Clase `Carta`,  
-    -  `Palo` es un tipo enumerado, que podéis definir dentro de `Carta.h` (al principio, fuera de la sección `@interface`) como:
+    -  `Palo` es un tipo enumerado, que se definiría en `Carta.h` (al principio, fuera de la sección `@interface`) con:
 
         ```objc
         typedef enum {
@@ -25,8 +24,10 @@ Aclaraciones:
 
 - Clase `Juego`:
     +  `Estado` es un tipo enumerado que representa el estado del juego: por ejemplo que es el turno del jugador, que es el turno de la máquina, que el jugador se ha pasado,... podéis elegir los estados que consideréis necesarios.
+    <!--
     +  Se recomienda calcular internamente la puntuación multiplicada por 10 para poder usar enteros sin decimales. Es decir, usar 15 en lugar de 1.5 para evitar posibles errores de redondeo. Eso sí, el usuario no debería ser consciente de esto, solo es algo interno.
-    +  El método `descripcionPuntuacion` debería devolver la puntuación en un `NSString *` con formato "amigable": "5", "6 y medio", ...
+    -->
+    +  El método `descripcionPuntuacion` debería devolver la puntuación como un `NSString *` con formato "amigable" para los mensajes al usuario: "5", "6 y medio", ...
 
 - Clase `Baraja`:
     + `init` debe crear la baraja con todas las cartas ordenadas
@@ -41,7 +42,7 @@ Debéis implementar al menos las siguientes pruebas unitarias:
 
 - Que al inicializar una `Carta` con `initConPalo:yValor` tanto el palo como el valor se han guardado correctamente (por ejemplo que al inicializar una carta como el 3 de copas si después obtenemos la propiedad `valor` nos da 3 y la propiedad `palo` nos da `Copas`).
 - Que cuando se reparte una carta de la `Baraja` se ha eliminado de ella y el número de cartas ha disminuido en 1.
-    > **Pista:** podemos comprobar fácilmente que un objeto no está en un `NSArray` (o en la versión mutable) si [el método `containsObject:`](https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Classes/NSArray_Class/index.html#//apple_ref/occ/instm/NSArray/containsObject:) pasándole el objeto buscado devuelve `NO`. Pero para eso tenéis que [sobreescribir primero el `isEqual`](https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Protocols/NSObject_Protocol/index.html#//apple_ref/occ/intfm/NSObject/isEqual:) en la clase `Carta`.
+    > **Pista:** podemos comprobar fácilmente que un objeto no está en un `NSArray` (o en la versión mutable) si [el método `containsObject:`](https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Classes/NSArray_Class/index.html#//apple_ref/occ/instm/NSArray/containsObject:) al pasarle el objeto buscado devuelve `NO`. Pero para eso tenéis que [sobreescribir primero el `isEqual`](https://developer.apple.com/library/ios/documentation/Cocoa/Reference/Foundation/Protocols/NSObject_Protocol/index.html#//apple_ref/occ/intfm/NSObject/isEqual:) en la clase `Carta`.
 
 ##Interfaz gráfico simplificado (1 punto)
 
@@ -63,13 +64,13 @@ En la interfaz completada deberían aparecer las cartas en pantalla conforme se 
 ###Cómo dibujar las cartas
 
 - Lo primero es copiar las imágenes de las cartas, que están en el directorio `miniproyecto/recursos/baraja` de las plantillas al `Images.xcassets`
-- Como se ve, cada imagen tiene un nombre al estilo `1bastos`, `12copas`,... podéis cargar la imagen con un código similar al siguiente:
+- Como se ve, cada imagen tiene un nombre al estilo `1bastos`, `12copas`,... podéis cargar en memoria la imagen con un código similar al siguiente (todavía no se verá en pantalla):
 
 ```objectivec
 NSString *nombreImagen = [NSString stringWithFormat:@"%d%@", carta.valor, carta.nombrePalo];
 UIImage *imagenCarta = [UIImage imageNamed:nombreImagen];
 ```
-- Para mostrar la imagen de una carta en pantalla tenemos que crear una `UIImageView` , fijar sus coordenadas y añadirla como subvista de la vista actual
+- Para ver la imagen en pantalla tenemos que crear una `UIImageView` que muestre la `UIImage` anterior , fijar sus coordenadas y añadirla como subvista de la vista actual
 
 ```objc
 UIImageView *cartaView = [[UIImageView alloc] initWithImage:imagenCarta];
@@ -85,19 +86,19 @@ cartaView.frame = CGRectMake(0, 0, 70, 105);
 - Es conveniente llevar "un registro" de qué vistas se han añadido a la vista principal para poder borrarlas cuando sea necesario
 
 ```objc
-//En la interfaz privada del controller
+//EN LA INTERFAZ PRIVADA DEL CONTROLLER
 //Un array con las UIView de las cartas, para poder borrarlas luego
 @property NSMutableArray *vistasCartas;
 ...
-//En el viewDidLoad
+//EN EL viewDidLoad
 self.vistasCartas = [[NSMutableArray alloc] init];
 ...
-//Al comenzar otra partida
+//AL COMENZAR OTRA PARTIDA
+//a) quito las vistas de la pantalla
 for (UIImageView *vistaCarta in self.vistasCartas) {
-    //quito las vistas de la pantalla
     [vistaCarta removeFromSuperview];
 }
-//vacío el array
+//b) vacío el array
 [self.vistasCartas removeAllObjects];
 ```
 
@@ -106,23 +107,24 @@ for (UIImageView *vistaCarta in self.vistasCartas) {
 En lugar de dibujarlas directamente en su posición, podemos hacerlo fuera de la pantalla (por ejemplo con el origen del *frame* en coordenadas negativas) y luego hacer una animación hasta su posición definitiva. Algo como
 
 ```objc
-
-// la ponemos fuera de la pantalla y más grande para que parezca más cerca
+// la ponemos fuera de la pantalla y más grande para que parezca más cerca ...
 cartaView.frame = CGRectMake(-200.0f, -200.0f, 200, 300);
-// y rotada, así al animarse también rotará si fijamos 0 como ángulo objetivo
+// ... y además rotada, así al animarse rotará si fijamos 0 como ángulo objetivo
 cartaView.transform = CGAffineTransformMakeRotation(M_PI);
 [UIView animateWithDuration:0.5f
     delay:0.1
     options:UIViewAnimationOptionCurveEaseOut
     animations:^{
-     //"pos" debería valer 1 si es la 1ª carta de la mano, 2 si es la 2ª, etc.
-     //además la dibujamos más pequeña para que parezca algo más lejos
+     //"pos" debe valer 1 si es la 1ª carta de la mano, 2 si es la 2ª, etc.
+     //La dibujamos más pequeña que antes para que parezca que "cae" a la mesa
      cartaView.frame = CGRectMake(50+70*(pos-1), 100, 70, 100);
+     //0 como ángulo "destino", para que rote mientras "cae"
      cartaView.transform = CGAffineTransformMakeRotation(0);
     }
     completion:^(BOOL finished){
+         //Esto se ejecuta justo al acabar la animación
          //aquí podemos por ejemplo habilitar el botón de pedir carta
-         //ya que ya está repartida (ha acabado la animación)
+         
      }
 ];
 ```
