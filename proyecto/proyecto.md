@@ -27,9 +27,7 @@ Aclaraciones:
 
 - Clase `Juego`:
     +  `Estado` es un tipo enumerado que representa el estado del juego: por ejemplo que es el turno del jugador, que es el turno de la máquina, que el jugador se ha pasado,... podéis elegir los estados que consideréis necesarios.
-    <!--
-    +  Se recomienda calcular internamente la puntuación multiplicada por 10 para poder usar enteros sin decimales. Es decir, usar 15 en lugar de 1.5 para evitar posibles errores de redondeo. Eso sí, el usuario no debería ser consciente de esto, solo es algo interno.
-    -->
+
     +  El método `descripcionPuntuacion` debería devolver la puntuación como un `NSString *` con formato "amigable" para los mensajes al usuario: "5", "6 y medio", ...
 
 - Clase `Baraja`:
@@ -66,7 +64,7 @@ En la interfaz completada deberían aparecer las cartas en pantalla conforme se 
 
 ###Cómo dibujar las cartas
 
-- Lo primero es copiar las imágenes de las cartas, que están en el directorio `miniproyecto/recursos/baraja` de las plantillas al `Images.xcassets`
+- Lo primero es copiar las imágenes de las cartas al `Images.xcassets`
 - Como se ve, cada imagen tiene un nombre al estilo `1bastos`, `12copas`,... podéis cargar en memoria la imagen con un código similar al siguiente (todavía no se verá en pantalla):
 
 ```objectivec
